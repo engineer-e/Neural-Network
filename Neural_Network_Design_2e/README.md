@@ -22,7 +22,7 @@
             - Multiple Layers of Neurons
             - Recurrent Networks
     - Summary of Results
-    - Solved Problems
+    - [Solved Problems](../Neural_Network_Design_2e/solved_problem/2/readme.md)
     - Epilogue
     - Exercises
 

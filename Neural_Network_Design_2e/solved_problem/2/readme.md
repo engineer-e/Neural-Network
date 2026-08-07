@@ -16,3 +16,7 @@
     3. A hyperbolic tangent sigmoid (tansig) transfer function
 
 4. A single-layer neural network is to have six inputs and two outputs. The outputs are to be limited to and continuous over the range 0 to 1. What can you tell about the network architecture?
+    1. How many neurons are required?
+    2. What are the dimensions of the weight matrix?
+    3. What kind of transfer functions could be used?
+    4. Is a bias required?
