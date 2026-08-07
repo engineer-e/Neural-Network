@@ -179,9 +179,21 @@
         - Multiplayer Perceptrons
             - Pattern Classification
             - Function Approximation
+        - The Backpropagation Algorithm
+            - Performance Index
+            - Chain Rule
+            - Backpropagating the Sensitivities
+            - Summary 
+        - Example
+        - Batch vs. Incremental Training
+        - Using Backpropagation
+            - Choice of Network Architecture 
+            - Convergence
+            - Generalization
     - Summary of Results
     - Solved Problems
     - Epilogue
+    - Further Reading
     - Exercises
     
     </details>
@@ -189,9 +201,19 @@
     
     - Objectives
     - Theory and Examples
+        - Drawbacks of Backpropagation
+            - Performance Surface Example
+            - Convergence Example 
+        - Heuristic Modifications of Backpropagation
+            - Momentum 
+            - Variable Learning Rule
+        - Numerical Optimization Techniques
+            - Conjugate Gradient
+            - Levenberg-Marquardt Algorithm
     - Summary of Results
     - Solved Problems
     - Epilogue
+    - Further Reading
     - Exercises
     
     </details>
@@ -199,6 +221,14 @@
     
     - Objectives
     - Theory and Examples
+        - Problem Statement
+        - Methods for Improving Generalization
+            - Estimating Generalization Error
+            - Early Stopping
+            - Regularization 
+            - Bayesian Analysis
+            - Bayesian Regularization
+            - Relationship Between Early Stopping and Regularization
     - Summary of Results
     - Solved Problems
     - Epilogue
@@ -209,6 +239,14 @@
     
     - Objectives
     - Theory and Examples
+        - Layered Digital Dynamic Networks
+            - Example Dynamic Networks
+        - Principles of Dynamic Learning
+        - Dynamic Backpropagation
+            - Preliminary Definitions
+            - Real Time Recurrent Learning
+            - Backpropagation-Through-Time
+            - Summary and Comments on Dynamic Training
     - Summary of Results
     - Solved Problems
     - Epilogue
@@ -219,6 +257,14 @@
     
     - Objectives
     - Theory and Examples
+        - Simple Associative Network
+        - Unsupervised Hebb Rule
+            - Hebb Rule with Decay
+        - Simple Recognition Network
+        - Instar Rule
+            - Kohonen Rule
+        - Simple Recall Network 
+        - Outstar Rule
     - Summary of Results
     - Solved Problems
     - Epilogue
@@ -229,9 +275,22 @@
     
     - Objectives
     - Theory and Examples
+        - Hamming Network
+            - Layer 1
+            - Layer 2 
+        - Competitive Layer
+            - Competitive Learning
+            - Problems with Competitive Layers
+        - Competitive Layers in Biology
+        - Self-Organizing Feature Maps
+            - Improving Feature Maps
+        - Learning Vector Quantization 
+            - LVQ Learning
+            - Improving LVQ Networks (LVQ2)
     - Summary of Results
     - Solved Problems
     - Epilogue
+    - Further Reading
     - Exercises
     
     </details>
@@ -239,9 +298,20 @@
     
     - Objectives
     - Theory and Examples
+        - Radial Basis Network
+            - Function Approximation 
+            - Pattern Classification
+            - Global vs. Local
+        - Training RBF Networks
+            - Linear Least Squares
+            - Orthogonal Least Squares 
+            - Clustering
+            - Nonlinear Optimization 
+            - Other Training Techniques
     - Summary of Results
     - Solved Problems
     - Epilogue
+    - Further Reading
     - Exercises
     
     </details>
@@ -249,9 +319,20 @@
     
     - Objectives
     - Theory and Examples
+        - Biological Motivation: Vision
+            - Illusions
+            - Vision Normalization
+        - Basic Nonlinear Model
+        - Two-Layer Competitive Network
+            - Layer 1
+            - Layer 2
+            - Choice of Transfer Function
+            - Learning Law 
+        - Relation to Kohonen Law
     - Summary of Results
     - Solved Problems
     - Epilogue
+    - Further Reading
     - Exercises
     
     </details>
@@ -259,9 +340,23 @@
     
     - Objectives
     - Theory and Examples
+        - Overview of Adaptive Resonance
+        - Layer 1
+            - Steady State Analysis
+        - Layer 2 
+        - Orienting Subsystem
+        - Learning Law: L1-L2
+            - Subset/Superset Dilemma
+            - Learning Law
+        - Learning Law: L2-L1
+        - ART1 Algorithm Summary 
+            - Initialization 
+            - Algorithm
+        - Other ART Architectures
     - Summary of Results
     - Solved Problems
     - Epilogue
+    - Further Reading
     - Exercises
     
     </details>
@@ -269,9 +364,20 @@
     
     - Objectives
     - Theory and Examples
+        - Recurrent Networks
+        - Stability Concepts
+            - Definitions
+        - Lyapunov Stability Theorem
+        - Pendulum Example
+        - LaSalle's Invariance Theorem
+            - Definitions
+            - Theorem
+            - Example
+            - Comments
     - Summary of Results
     - Solved Problems
     - Epilogue
+    - Further Reading
     - Exercises
     
     </details>
@@ -279,9 +385,20 @@
     
     - Objectives
     - Theory and Examples
+        - Hopfield Model
+        - Lyapunov Function 
+            - Invariant Sets
+            - Example
+            - Hopfield Attractors
+        - Effect of Gain
+        - Hopfield Design
+            - Content-Addressable Memory
+            - Hebb Rule
+            - Lyapunov Surface
     - Summary of Results
     - Solved Problems
     - Epilogue
+    - Further Reading
     - Exercises
     
     </details>
@@ -289,10 +406,25 @@
     
     - Objectives
     - Theory and Examples
-    - Summary of Results
-    - Solved Problems
+        - Pre-Training Steps
+            - Selection of Data
+            - Data Preprocessing
+            - Choice of Network Architecture
+        - Training the Network
+            - Weight Initialization 
+            - Choice of Training Algorithm 
+            - Stopping Criteria
+            - Choice of Performance Function 
+            - Committees of Networks
+        - Post-Training Analysis
+            - Fitting
+            - Pattern Recognition 
+            - Clustering
+            - Prediction
+             - Overfitting and Extrapolation 
+             - Sensitivity Analysis
     - Epilogue
-    - Exercises
+    - Further Reading
     
     </details>
 23. <details>
@@ -373,3 +505,8 @@
     - Further Reading
 
     </details>
+
+---
+
+![alt text](book_cover.png)
+
