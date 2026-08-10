@@ -15,7 +15,7 @@
         - [Notation](Ch2/theory_and_examples/notation/readme.md)
         - Neuron Model
             - [Single-Input Neuron](Ch2/theory_and_examples/neuron_model/single_input_neuron.ipynb)
-            - [Transfer Functions](Ch2/theory_and_examples/neuron_model/transfer_functions.ipynb)
+            - [Transfer Functions](Ch2/theory_and_examples/neuron_model/transfer_function.ipynb)
             - Multiple-Input Neuron
         - Network Architectures
             - A Layer of Neurons
