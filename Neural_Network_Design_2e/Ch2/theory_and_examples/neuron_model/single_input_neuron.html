@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>Single-Input Neuron</title>
+
+
+<style>
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+
+    margin: 0;
+
+    background: #f5f7fa;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    color: #17202a;
+}
+
+
+/* =========================================================
+   MAIN CONTAINER
+========================================================= */
+
+.container {
+
+    width: 96%;
+
+    max-width: 1150px;
+
+    margin: 25px auto;
+
+}
+
+
+/* =========================================================
+   TITLE
+========================================================= */
+
+.title {
+
+    text-align: center;
+
+    font-size: 32px;
+
+    font-weight: bold;
+
+    margin-bottom: 20px;
+
+    color: #17202a;
+
+}
+
+
+/* =========================================================
+   CONTROL PANEL
+========================================================= */
+
+.controls {
+
+    background: white;
+
+    padding: 20px 25px;
+
+    border-radius: 15px;
+
+    box-shadow:
+        0 4px 15px rgba(0,0,0,0.08);
+
+    margin-bottom: 25px;
+
+}
+
+
+/* Each slider row */
+
+.control {
+
+    display: grid;
+
+    grid-template-columns:
+        105px
+        minmax(250px, 1fr)
+        70px;
+
+    align-items: center;
+
+    column-gap: 15px;
+
+    margin: 15px 0;
+
+}
+
+
+/* Slider label */
+
+.control label {
+
+    font-size: 17px;
+
+    font-weight: bold;
+
+}
+
+
+/* Slider */
+
+input[type="range"] {
+
+    width: 100%;
+
+    height: 7px;
+
+    cursor: pointer;
+
+    accent-color: #2874a6;
+
+}
+
+
+/* Slider value */
+
+.slider-value {
+
+    background: #eef2f5;
+
+    border-radius: 7px;
+
+    padding: 7px 8px;
+
+    text-align: center;
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+}
+
+
+/* Colors */
+
+.p-label {
+
+    color: #2874a6;
+}
+
+.w-label {
+
+    color: #8e44ad;
+}
+
+.b-label {
+
+    color: #e67e22;
+}
+
+
+/* =========================================================
+   NEURON CARD
+========================================================= */
+
+.neuron-card {
+
+    background: white;
+
+    border-radius: 15px;
+
+    box-shadow:
+        0 4px 15px rgba(0,0,0,0.08);
+
+    padding: 20px 25px 25px 25px;
+
+}
+
+
+/* SVG */
+
+.neuron-svg {
+
+    width: 100%;
+
+    height: auto;
+
+    display: block;
+
+}
+
+
+/* =========================================================
+   CALCULATION
+========================================================= */
+
+.calculation {
+
+    margin-top: 15px;
+
+    padding: 20px;
+
+    background: #f8f9f9;
+
+    border-left:
+        5px solid #2874a6;
+
+    border-radius: 8px;
+
+    font-size: 19px;
+
+    line-height: 1.8;
+
+}
+
+
+/* Calculation title */
+
+.calculation-title {
+
+    font-size: 21px;
+
+    font-weight: bold;
+
+    color: #2c3e50;
+
+    margin-bottom: 10px;
+
+}
+
+
+/* Calculation colors */
+
+.calc-p {
+
+    color: #2874a6;
+}
+
+.calc-w {
+
+    color: #8e44ad;
+}
+
+.calc-b {
+
+    color: #e67e22;
+}
+
+.calc-n {
+
+    color: #34495e;
+}
+
+.calc-a {
+
+    color: #c0392b;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+    .control {
+
+        grid-template-columns:
+            90px
+            1fr
+            60px;
+
+        column-gap: 8px;
+
+    }
+
+    .control label {
+
+        font-size: 14px;
+
+    }
+
+    .slider-value {
+
+        font-size: 14px;
+
+    }
+
+    .calculation {
+
+        font-size: 16px;
+
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+<!-- =====================================================
+     TITLE
+===================================================== -->
+
+<div class="title">
+
+    Single-Input Neuron
+
+</div>
+
+
+
+<!-- =====================================================
+     SLIDER CONTROLS
+===================================================== -->
+
+<div class="controls">
+
+
+    <!-- INPUT p -->
+
+    <div class="control">
+
+        <label class="p-label">
+            Input p
+        </label>
+
+        <input
+            id="pSlider"
+            type="range"
+            min="-5"
+            max="5"
+            step="0.1"
+            value="0.9"
+        >
+
+        <div
+            id="pValue"
+            class="slider-value">
+            0.9
+        </div>
+
+    </div>
+
+
+
+    <!-- WEIGHT w -->
+
+    <div class="control">
+
+        <label class="w-label">
+            Weight w
+        </label>
+
+        <input
+            id="wSlider"
+            type="range"
+            min="-5"
+            max="5"
+            step="0.1"
+            value="1.5"
+        >
+
+        <div
+            id="wValue"
+            class="slider-value">
+            1.5
+        </div>
+
+    </div>
+
+
+
+    <!-- BIAS b -->
+
+    <div class="control">
+
+        <label class="b-label">
+            Bias b
+        </label>
+
+        <input
+            id="bSlider"
+            type="range"
+            min="-5"
+            max="5"
+            step="0.1"
+            value="1.2"
+        >
+
+        <div
+            id="bValue"
+            class="slider-value">
+            1.2
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     NEURON
+===================================================== -->
+
+<div class="neuron-card">
+
+
+<svg
+    class="neuron-svg"
+    viewBox="0 0 1000 560"
+    xmlns="http://www.w3.org/2000/svg"
+>
+
+
+<!-- =====================================================
+     TOP LABEL: INPUTS
+===================================================== -->
+
+<text
+    x="165"
+    y="65"
+    text-anchor="middle"
+    font-size="34"
+    fill="#17202a">
+
+    Inputs
+
+</text>
+
+
+<!-- Inputs bracket -->
+
+<path
+    d="
+        M90 105
+        Q90 80 115 80
+        L215 80
+        Q240 80 240 105
+    "
+    fill="none"
+    stroke="#222"
+    stroke-width="4"
+/>
+
+
+
+<!-- =====================================================
+     TOP LABEL: GENERAL NEURON
+===================================================== -->
+
+<text
+    x="590"
+    y="65"
+    text-anchor="middle"
+    font-size="34"
+    fill="#17202a">
+
+    General Neuron
+
+</text>
+
+
+<!-- General neuron bracket -->
+
+<path
+    d="
+        M300 105
+        Q300 80 325 80
+        L850 80
+        Q875 80 875 105
+    "
+    fill="none"
+    stroke="#222"
+    stroke-width="4"
+/>
+
+
+
+<!-- =====================================================
+     INPUT NODE
+===================================================== -->
+
+<circle
+    cx="120"
+    cy="260"
+    r="11"
+    fill="#2874a6"
+/>
+
+
+<!-- p symbol -->
+
+<text
+    x="82"
+    y="270"
+    font-size="32"
+    font-style="italic"
+    fill="#2874a6">
+
+    p
+
+</text>
+
+
+<!-- LIVE p VALUE -->
+
+<text
+    id="svgPValue"
+    x="120"
+    y="315"
+    text-anchor="middle"
+    font-size="21"
+    font-weight="bold"
+    fill="#2874a6">
+
+    0.9
+
+</text>
+
+
+
+<!-- =====================================================
+     INPUT LINE
+===================================================== -->
+
+<line
+    x1="131"
+    y1="260"
+    x2="330"
+    y2="260"
+    stroke="#222"
+    stroke-width="4"
+/>
+
+
+
+<!-- =====================================================
+     WEIGHT
+===================================================== -->
+
+<text
+    id="svgW"
+    x="230"
+    y="225"
+    text-anchor="middle"
+    font-size="28"
+    font-style="italic"
+    fill="#8e44ad">
+
+    w = 1.5
+
+</text>
+
+
+
+<!-- =====================================================
+     SUMMATION BLOCK
+===================================================== -->
+
+<rect
+    x="330"
+    y="215"
+    width="100"
+    height="90"
+    fill="white"
+    stroke="#222"
+    stroke-width="4"
+/>
+
+
+<text
+    x="380"
+    y="280"
+    text-anchor="middle"
+    font-size="52"
+    fill="#222">
+
+    Σ
+
+</text>
+
+
+
+<!-- =====================================================
+     BIAS
+===================================================== -->
+
+<line
+    x1="380"
+    y1="420"
+    x2="380"
+    y2="305"
+    stroke="#222"
+    stroke-width="4"
+/>
+
+
+<circle
+    cx="380"
+    cy="420"
+    r="11"
+    fill="#e67e22"
+/>
+
+
+<!-- b value -->
+
+<text
+    id="svgB"
+    x="425"
+    y="365"
+    text-anchor="start"
+    font-size="28"
+    font-style="italic"
+    fill="#e67e22">
+
+    b = 1.2
+
+</text>
+
+
+<!-- constant 1 -->
+
+<text
+    x="380"
+    y="465"
+    text-anchor="middle"
+    font-size="25">
+
+    1
+
+</text>
+
+
+
+<!-- =====================================================
+     NET INPUT LINE
+===================================================== -->
+
+<line
+    x1="430"
+    y1="260"
+    x2="570"
+    y2="260"
+    stroke="#222"
+    stroke-width="4"
+/>
+
+
+<!-- Arrow -->
+
+<polygon
+    points="
+        570,260
+        550,248
+        550,272
+    "
+    fill="#222"
+/>
+
+
+
+<!-- n label -->
+
+<text
+    x="500"
+    y="225"
+    text-anchor="middle"
+    font-size="28"
+    font-style="italic"
+    fill="#34495e">
+
+    n
+
+</text>
+
+
+<!-- n value -->
+
+<text
+    id="svgNValue"
+    x="500"
+    y="315"
+    text-anchor="middle"
+    font-size="21"
+    font-weight="bold"
+    fill="#34495e">
+
+    2.55
+
+</text>
+
+
+
+<!-- =====================================================
+     TRANSFER FUNCTION
+===================================================== -->
+
+<rect
+    x="570"
+    y="215"
+    width="105"
+    height="90"
+    fill="white"
+    stroke="#222"
+    stroke-width="4"
+/>
+
+
+<text
+    x="622"
+    y="280"
+    text-anchor="middle"
+    font-size="52"
+    font-style="italic">
+
+    f
+
+</text>
+
+
+
+<!-- =====================================================
+     OUTPUT LINE
+===================================================== -->
+
+<line
+    x1="675"
+    y1="260"
+    x2="850"
+    y2="260"
+    stroke="#222"
+    stroke-width="4"
+/>
+
+
+<!-- Arrow -->
+
+<polygon
+    points="
+        850,260
+        830,248
+        830,272
+    "
+    fill="#222"
+/>
+
+
+
+<!-- Output a -->
+
+<text
+    id="svgA"
+    x="885"
+    y="270"
+    text-anchor="start"
+    font-size="30"
+    font-style="italic"
+    fill="#c0392b">
+
+    a = 2.55
+
+</text>
+
+
+
+<!-- =====================================================
+     BOTTOM BRACKET: INPUT
+===================================================== -->
+
+<path
+    d="
+        M90 465
+        Q90 495 120 495
+        L210 495
+        Q240 495 240 465
+    "
+    fill="none"
+    stroke="#222"
+    stroke-width="4"
+/>
+
+
+
+<!-- =====================================================
+     BOTTOM BRACKET: GENERAL NEURON
+===================================================== -->
+
+<path
+    d="
+        M300 465
+        Q300 495 330 495
+        L850 495
+        Q875 495 875 465
+    "
+    fill="none"
+    stroke="#222"
+    stroke-width="4"
+/>
+
+
+
+<!-- =====================================================
+     EQUATION
+===================================================== -->
+
+<text
+    x="590"
+    y="535"
+    text-anchor="middle"
+    font-size="31"
+    font-style="italic">
+
+    a = f(wp + b)
+
+</text>
+
+
+</svg>
+
+
+
+<!-- =====================================================
+     LIVE CALCULATION
+===================================================== -->
+
+<div class="calculation">
+
+
+    <div class="calculation-title">
+
+        Live Calculation
+
+    </div>
+
+
+    <div class="calc-p">
+
+        p =
+        <span id="calcP">
+            0.90
+        </span>
+
+    </div>
+
+
+    <div class="calc-w">
+
+        w =
+        <span id="calcW">
+            1.50
+        </span>
+
+    </div>
+
+
+    <div class="calc-b">
+
+        b =
+        <span id="calcB">
+            1.20
+        </span>
+
+    </div>
+
+
+    <br>
+
+
+    <div class="calc-n">
+
+        n = wp + b
+
+    </div>
+
+
+    <div>
+
+        n =
+        (<span id="calcW2">1.50</span>)
+        ×
+        (<span id="calcP2">0.90</span>)
+        +
+        (<span id="calcB2">1.20</span>)
+
+    </div>
+
+
+    <div>
+
+        n =
+        <b id="calcN">
+            2.55
+        </b>
+
+    </div>
+
+
+    <br>
+
+
+    <div class="calc-a">
+
+        a = f(n)
+
+    </div>
+
+
+    <div class="calc-a">
+
+        a = f(<span id="calcN2">2.55</span>)
+        =
+        <b id="calcA">
+            2.55
+        </b>
+
+    </div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+<!-- =====================================================
+     JAVASCRIPT
+===================================================== -->
+
+<script>
+
+
+/* =========================================================
+   GET SLIDERS
+========================================================= */
+
+const pSlider =
+    document.getElementById("pSlider");
+
+const wSlider =
+    document.getElementById("wSlider");
+
+const bSlider =
+    document.getElementById("bSlider");
+
+
+
+/* =========================================================
+   UPDATE EVERYTHING
+========================================================= */
+
+function updateNeuron() {
+
+
+    /* -----------------------------------------
+       Read slider values
+    ----------------------------------------- */
+
+    const p =
+        parseFloat(pSlider.value);
+
+    const w =
+        parseFloat(wSlider.value);
+
+    const b =
+        parseFloat(bSlider.value);
+
+
+    /* -----------------------------------------
+       Neuron equation
+
+       n = wp + b
+
+       f(n) = n
+    ----------------------------------------- */
+
+    const n =
+        (w * p) + b;
+
+    const a =
+        n;
+
+
+
+    /* =====================================================
+       UPDATE SLIDER VALUE BOXES
+    ===================================================== */
+
+    document.getElementById("pValue").textContent =
+        p.toFixed(1);
+
+    document.getElementById("wValue").textContent =
+        w.toFixed(1);
+
+    document.getElementById("bValue").textContent =
+        b.toFixed(1);
+
+
+
+    /* =====================================================
+       UPDATE SVG
+    ===================================================== */
+
+    document.getElementById("svgPValue").textContent =
+        p.toFixed(1);
+
+
+    document.getElementById("svgW").textContent =
+        "w = " + w.toFixed(1);
+
+
+    document.getElementById("svgB").textContent =
+        "b = " + b.toFixed(1);
+
+
+    document.getElementById("svgNValue").textContent =
+        n.toFixed(2);
+
+
+    document.getElementById("svgA").textContent =
+        "a = " + a.toFixed(2);
+
+
+
+    /* =====================================================
+       UPDATE CALCULATION
+    ===================================================== */
+
+    document.getElementById("calcP").textContent =
+        p.toFixed(2);
+
+
+    document.getElementById("calcW").textContent =
+        w.toFixed(2);
+
+
+    document.getElementById("calcB").textContent =
+        b.toFixed(2);
+
+
+    document.getElementById("calcW2").textContent =
+        w.toFixed(2);
+
+
+    document.getElementById("calcP2").textContent =
+        p.toFixed(2);
+
+
+    document.getElementById("calcB2").textContent =
+        b.toFixed(2);
+
+
+    document.getElementById("calcN").textContent =
+        n.toFixed(2);
+
+
+    document.getElementById("calcN2").textContent =
+        n.toFixed(2);
+
+
+    document.getElementById("calcA").textContent =
+        a.toFixed(2);
+
+}
+
+
+
+/* =========================================================
+   SLIDER EVENTS
+========================================================= */
+
+pSlider.addEventListener(
+    "input",
+    updateNeuron
+);
+
+
+wSlider.addEventListener(
+    "input",
+    updateNeuron
+);
+
+
+bSlider.addEventListener(
+    "input",
+    updateNeuron
+);
+
+
+
+/* =========================================================
+   INITIAL DISPLAY
+========================================================= */
+
+updateNeuron();
+
+
+</script>
+
+
+</body>
+
+</html>
