@@ -12,17 +12,17 @@
 
     - Objectives
     - Theory and Examples
-        - Notation
+        - [Notation](Ch2/theory_and_examples/notation/readme.md)
         - Neuron Model
-            - Single-Input Neuron
-            - Transfer Functions
+            - [Single-Input Neuron](Ch2/theory_and_examples/neuron_model/single_input_neuron.md)
+            - [Transfer Functions](Ch2/theory_and_examples/neuron_model/transfer_functions.md)
             - Multiple-Input Neuron
         - Network Architectures
             - A Layer of Neurons
             - Multiple Layers of Neurons
             - Recurrent Networks
     - Summary of Results
-    - [Solved Problems](../Neural_Network_Design_2e/solved_problem/2/readme.md)
+    - [Solved Problems](solved_problem/2/readme.md)
     - Epilogue
     - Exercises
 

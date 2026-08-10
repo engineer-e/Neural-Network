@@ -43,6 +43,7 @@
 build/
 Build/
 build-*/
+build-wasm/
 
 # CMake generated files
 CMakeFiles/
