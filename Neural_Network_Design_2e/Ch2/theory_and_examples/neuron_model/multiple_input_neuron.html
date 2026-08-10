@@ -1,0 +1,3487 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Multiple-Input Neuron — Weight Matrix</title>
+
+
+    <!-- =====================================================
+         MATHJAX 3
+         ===================================================== -->
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [
+                    ['\\(', '\\)']
+                ],
+                displayMath: [
+                    ['\\[', '\\]']
+                ],
+                processEscapes: true,
+                processEnvironments: true
+            },
+
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+
+    <script
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+
+
+    <!-- =====================================================
+         CSS
+         ===================================================== -->
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            background: #f4f6f8;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            color: #17202a;
+        }
+
+
+        .container {
+
+            width: 96%;
+
+            max-width: 1400px;
+
+            margin: 25px auto 60px auto;
+        }
+
+
+        h1 {
+
+            text-align: center;
+
+            margin-bottom: 8px;
+
+            font-size: 34px;
+
+            color: #17202a;
+        }
+
+
+        .subtitle {
+
+            text-align: center;
+
+            color: #566573;
+
+            font-size: 17px;
+
+            margin-bottom: 25px;
+        }
+
+
+        /* =====================================================
+           CARDS
+           ===================================================== */
+
+        .card {
+
+            background: white;
+
+            border-radius: 16px;
+
+            padding: 22px;
+
+            margin-bottom: 22px;
+
+            box-shadow:
+                0 4px 18px rgba(0,0,0,0.08);
+        }
+
+
+        .section-title {
+
+            font-size: 24px;
+
+            font-weight: bold;
+
+            margin-bottom: 18px;
+
+            color: #2c3e50;
+        }
+
+
+        /* =====================================================
+           CONTROLS
+           ===================================================== */
+
+        .controls {
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 20px;
+        }
+
+
+        .control-box {
+
+            background: #f8f9fa;
+
+            border-radius: 12px;
+
+            padding: 18px;
+        }
+
+
+        .control-title {
+
+            font-size: 19px;
+
+            font-weight: bold;
+
+            margin-bottom: 15px;
+
+            color: #2c3e50;
+        }
+
+
+        select {
+
+            width: 100%;
+
+            padding: 11px;
+
+            border-radius: 8px;
+
+            border: 2px solid #d5d8dc;
+
+            font-size: 16px;
+
+            background: white;
+
+            cursor: pointer;
+        }
+
+
+        select:focus {
+
+            outline: none;
+
+            border-color: #2874a6;
+        }
+
+
+        /* =====================================================
+           INPUT GRID
+           ===================================================== */
+
+        .input-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 10px;
+
+            margin-top: 15px;
+        }
+
+
+        .input-item {
+
+            background: white;
+
+            border-radius: 8px;
+
+            padding: 10px;
+
+            border: 1px solid #e5e7e9;
+        }
+
+
+        .input-item label {
+
+            display: block;
+
+            font-weight: bold;
+
+            margin-bottom: 6px;
+        }
+
+
+        .input-item input {
+
+            width: 100%;
+        }
+
+
+        .input-value {
+
+            text-align: center;
+
+            margin-top: 5px;
+
+            font-weight: bold;
+
+            color: #2874a6;
+        }
+
+
+        .weight-value {
+
+            color: #8e44ad;
+        }
+
+
+        /* =====================================================
+           BIAS
+           ===================================================== */
+
+        .bias-control {
+
+            margin-top: 15px;
+
+            background: white;
+
+            padding: 12px;
+
+            border-radius: 8px;
+
+            border: 1px solid #e5e7e9;
+        }
+
+
+        .bias-control input {
+
+            width: 100%;
+        }
+
+
+        .bias-label {
+
+            color: #e67e22;
+
+            font-weight: bold;
+        }
+
+
+        /* =====================================================
+           EQUATIONS
+           ===================================================== */
+
+        .equation {
+
+            text-align: center;
+
+            font-size: 24px;
+
+            padding: 15px;
+
+            margin: 10px 0;
+
+            background: #f8f9fa;
+
+            border-radius: 10px;
+
+            overflow-x: auto;
+        }
+
+
+        .equation-small {
+
+            font-size: 19px;
+
+            text-align: center;
+
+            color: #566573;
+
+            margin: 10px 0;
+        }
+
+
+        /* =====================================================
+           SVG
+           ===================================================== */
+
+        .svg-container {
+
+            width: 100%;
+
+            overflow-x: auto;
+
+            background: white;
+
+            border-radius: 12px;
+        }
+
+
+        .neuron-svg {
+
+            width: 100%;
+
+            min-width: 850px;
+
+            height: auto;
+
+            display: block;
+        }
+
+
+        /* =====================================================
+           RESULT
+           ===================================================== */
+
+        .result-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 12px;
+
+            margin-top: 18px;
+        }
+
+
+        .result {
+
+            text-align: center;
+
+            padding: 15px;
+
+            border-radius: 10px;
+
+            background: #f8f9fa;
+        }
+
+
+        .result-name {
+
+            font-size: 14px;
+
+            color: #566573;
+
+            margin-bottom: 6px;
+        }
+
+
+        .result-value {
+
+            font-size: 22px;
+
+            font-weight: bold;
+        }
+
+
+        .result-n {
+
+            color: #34495e;
+        }
+
+
+        .result-a {
+
+            color: #c0392b;
+        }
+
+
+        .result-p {
+
+            color: #2874a6;
+        }
+
+
+        .result-w {
+
+            color: #8e44ad;
+        }
+
+
+        .result-b {
+
+            color: #e67e22;
+        }
+
+
+        /* =====================================================
+           MATRIX
+           ===================================================== */
+
+        .matrix-container {
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 20px;
+
+            margin-top: 18px;
+        }
+
+
+        .matrix-box {
+
+            background: #f8f9fa;
+
+            border-radius: 12px;
+
+            padding: 20px;
+
+            text-align: center;
+
+            overflow-x: auto;
+        }
+
+
+        .matrix-title {
+
+            font-weight: bold;
+
+            font-size: 18px;
+
+            margin-bottom: 12px;
+
+            color: #2c3e50;
+        }
+
+
+        /* =====================================================
+           DESCRIPTION
+           ===================================================== */
+
+        .description {
+
+            background: #eef6fb;
+
+            border-left:
+                5px solid #2874a6;
+
+            padding: 16px 18px;
+
+            border-radius: 8px;
+
+            font-size: 17px;
+
+            line-height: 1.6;
+
+            margin-top: 18px;
+        }
+
+
+        /* =====================================================
+           GRAPH
+           ===================================================== */
+
+        .graph-title {
+
+            text-align: center;
+
+            font-size: 22px;
+
+            font-weight: bold;
+
+            color: #2c3e50;
+
+            margin-bottom: 10px;
+        }
+
+
+        .graph-container {
+
+            position: relative;
+
+            width: 100%;
+
+            background: white;
+
+            border-radius: 12px;
+
+            padding: 10px;
+        }
+
+
+        #graph {
+
+            width: 100%;
+
+            height: 430px;
+
+            display: block;
+        }
+
+
+        /* =====================================================
+           TABLE
+           ===================================================== */
+
+        .table-wrapper {
+
+            overflow-x: auto;
+        }
+
+
+        table {
+
+            width: 100%;
+
+            border-collapse: collapse;
+
+            font-size: 15px;
+        }
+
+
+        th {
+
+            background: #2c3e50;
+
+            color: white;
+
+            padding: 12px;
+
+            text-align: left;
+        }
+
+
+        td {
+
+            padding: 11px;
+
+            border-bottom:
+                1px solid #e5e7e9;
+        }
+
+
+        tr:hover {
+
+            background: #f8f9fa;
+        }
+
+
+        /* =====================================================
+           MOBILE
+           ===================================================== */
+
+        @media (max-width: 800px) {
+
+            .controls {
+
+                grid-template-columns: 1fr;
+            }
+
+
+            .result-grid {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+
+            .matrix-container {
+
+                grid-template-columns: 1fr;
+            }
+
+
+            .input-grid {
+
+                grid-template-columns:
+                    1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <!-- =====================================================
+         TITLE
+         ===================================================== -->
+
+    <h1>
+        Multiple-Input Neuron
+    </h1>
+
+
+    <div class="subtitle">
+
+        Explore the weight matrix, input vector, bias,
+        net input, and transfer function.
+
+    </div>
+
+
+    <!-- =====================================================
+         CONTROLS
+         ===================================================== -->
+
+    <div class="card">
+
+        <div class="controls">
+
+
+            <!-- =================================================
+                 NUMBER OF INPUTS
+                 ================================================= -->
+
+            <div class="control-box">
+
+                <div class="control-title">
+                    Network Configuration
+                </div>
+
+
+                <label>
+                    Number of Inputs \(R\)
+                </label>
+
+
+                <select id="inputCount">
+
+                    <option value="1">1 Input</option>
+
+                    <option value="2">2 Inputs</option>
+
+                    <option value="3">3 Inputs</option>
+
+                    <option value="4" selected>
+                        4 Inputs
+                    </option>
+
+                    <option value="5">5 Inputs</option>
+
+                    <option value="6">6 Inputs</option>
+
+                    <option value="7">7 Inputs</option>
+
+                    <option value="8">8 Inputs</option>
+
+                </select>
+
+
+                <div class="description">
+
+                    The input vector has dimensions
+
+                    \[
+                    \mathbf{p}\in\mathbb{R}^{R\times1}
+                    \]
+
+                    and the single-neuron weight matrix has
+                    dimensions
+
+                    \[
+                    \mathbf{W}\in\mathbb{R}^{1\times R}.
+                    \]
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 TRANSFER FUNCTION
+                 ================================================= -->
+
+            <div class="control-box">
+
+                <div class="control-title">
+                    Transfer Function
+                </div>
+
+
+                <select id="functionSelect">
+
+                    <option value="hardlim">
+                        Hard Limit — hardlim
+                    </option>
+
+                    <option value="hardlims">
+                        Symmetrical Hard Limit — hardlims
+                    </option>
+
+                    <option value="purelin" selected>
+                        Linear — purelin
+                    </option>
+
+                    <option value="satlin">
+                        Saturating Linear — satlin
+                    </option>
+
+                    <option value="satlins">
+                        Symmetric Saturating Linear — satlins
+                    </option>
+
+                    <option value="logsig">
+                        Log-Sigmoid — logsig
+                    </option>
+
+                    <option value="tansig">
+                        Hyperbolic Tangent Sigmoid — tansig
+                    </option>
+
+                    <option value="poslin">
+                        Positive Linear — poslin
+                    </option>
+
+                    <option value="compet">
+                        Competitive — compet
+                    </option>
+
+                </select>
+
+
+                <div
+                    id="functionDescription"
+                    class="description">
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             DYNAMIC INPUTS
+             ===================================================== -->
+
+        <div
+            class="control-box"
+            style="margin-top:20px;">
+
+            <div class="control-title">
+
+                Inputs \(p_i\) and Weights \(w_{1,i}\)
+
+            </div>
+
+
+            <div
+                id="inputGrid"
+                class="input-grid">
+            </div>
+
+
+            <!-- =================================================
+                 BIAS
+                 ================================================= -->
+
+            <div class="bias-control">
+
+                <div class="bias-label">
+
+                    Bias \(b\)
+
+                </div>
+
+
+                <input
+                    id="biasSlider"
+                    type="range"
+                    min="-5"
+                    max="5"
+                    step="0.1"
+                    value="1.2"
+                >
+
+
+                <div
+                    id="biasValue"
+                    style="
+                        text-align:center;
+                        font-weight:bold;
+                        color:#e67e22;
+                        margin-top:5px;
+                    ">
+
+                    1.2
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         FIGURE 2.5
+         ===================================================== -->
+
+    <div class="card">
+
+        <div class="section-title">
+
+            Figure 2.5 — Multiple-Input Neuron
+
+        </div>
+
+
+        <div class="svg-container">
+
+            <svg
+                id="detailedNeuron"
+                class="neuron-svg"
+                viewBox="0 0 1200 650"
+                xmlns="http://www.w3.org/2000/svg">
+
+            </svg>
+
+        </div>
+
+
+        <div class="equation">
+
+            \[
+            n =
+            w_{1,1}p_1+
+            w_{1,2}p_2+
+            \cdots+
+            w_{1,R}p_R+b
+            \]
+
+        </div>
+
+
+        <div class="equation">
+
+            \[
+            \boxed{
+            n=\mathbf{W}\mathbf{p}+b
+            }
+            \]
+
+        </div>
+
+
+        <div class="equation">
+
+            \[
+            \boxed{
+            a=f(\mathbf{W}\mathbf{p}+b)
+            }
+            \]
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         FIGURE 2.6
+         ===================================================== -->
+
+    <div class="card">
+
+        <div class="section-title">
+
+            Figure 2.6 — Neuron with \(R\) Inputs,
+            Abbreviated Notation
+
+        </div>
+
+
+        <div class="svg-container">
+
+            <svg
+                id="abbreviatedNeuron"
+                class="neuron-svg"
+                viewBox="0 0 1200 600"
+                xmlns="http://www.w3.org/2000/svg">
+
+            </svg>
+
+        </div>
+
+
+        <div class="matrix-container">
+
+
+            <div class="matrix-box">
+
+                <div class="matrix-title">
+
+                    Input Vector
+
+                </div>
+
+
+                <div style="font-size:24px;">
+
+                    \[
+                    \mathbf{p}
+                    =
+                    \begin{bmatrix}
+                    p_1\\
+                    p_2\\
+                    \vdots\\
+                    p_R
+                    \end{bmatrix}
+                    \]
+
+                </div>
+
+
+                <div>
+
+                    Dimensions:
+
+                    \[
+                    R\times1
+                    \]
+
+                </div>
+
+            </div>
+
+
+            <div class="matrix-box">
+
+                <div class="matrix-title">
+
+                    Weight Matrix
+
+                </div>
+
+
+                <div style="font-size:24px;">
+
+                    \[
+                    \mathbf{W}
+                    =
+                    \begin{bmatrix}
+                    w_{1,1}&
+                    w_{1,2}&
+                    \cdots&
+                    w_{1,R}
+                    \end{bmatrix}
+                    \]
+
+                </div>
+
+
+                <div>
+
+                    Dimensions:
+
+                    \[
+                    1\times R
+                    \]
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="equation">
+
+            \[
+            \mathbf{W}\mathbf{p}
+            =
+            \begin{bmatrix}
+            w_{1,1}&
+            w_{1,2}&
+            \cdots&
+            w_{1,R}
+            \end{bmatrix}
+            \begin{bmatrix}
+            p_1\\
+            p_2\\
+            \vdots\\
+            p_R
+            \end{bmatrix}
+            \]
+
+        </div>
+
+
+        <div class="equation">
+
+            \[
+            \boxed{
+            \mathbf{W}\mathbf{p}+b
+            =
+            w_{1,1}p_1+
+            w_{1,2}p_2+
+            \cdots+
+            w_{1,R}p_R+b
+            }
+            \]
+
+        </div>
+
+
+        <div class="equation">
+
+            \[
+            \boxed{
+            a=f(\mathbf{W}\mathbf{p}+b)
+            }
+            \]
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         LIVE RESULTS
+         ===================================================== -->
+
+    <div class="card">
+
+        <div class="section-title">
+            Live Neuron Calculation
+        </div>
+
+
+        <div
+            id="liveEquation"
+            class="equation">
+
+        </div>
+
+
+        <div class="result-grid">
+
+
+            <div class="result">
+
+                <div class="result-name">
+                    Number of Inputs
+                </div>
+
+                <div
+                    id="resultR"
+                    class="result-value result-p">
+                    4
+                </div>
+
+            </div>
+
+
+            <div class="result">
+
+                <div class="result-name">
+                    Net Input \(n\)
+                </div>
+
+                <div
+                    id="resultN"
+                    class="result-value result-n">
+                    2.55
+                </div>
+
+            </div>
+
+
+            <div class="result">
+
+                <div class="result-name">
+                    Bias \(b\)
+                </div>
+
+                <div
+                    id="resultB"
+                    class="result-value result-b">
+                    1.20
+                </div>
+
+            </div>
+
+
+            <div class="result">
+
+                <div class="result-name">
+                    Output \(a\)
+                </div>
+
+                <div
+                    id="resultA"
+                    class="result-value result-a">
+                    2.55
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         GRAPH
+         ===================================================== -->
+
+    <div class="card">
+
+        <div class="graph-title">
+
+            Input / Output Characteristic
+
+        </div>
+
+
+        <div class="description">
+
+            Because a multiple-input neuron has several inputs,
+            this graph varies one selected input while keeping
+            the other inputs fixed.
+
+        </div>
+
+
+        <div
+            style="
+                margin:15px 0;
+                text-align:center;
+            ">
+
+            <label>
+
+                Graph Input:
+
+                <select
+                    id="graphInput"
+                    style="
+                        width:auto;
+                        min-width:160px;
+                    ">
+                </select>
+
+            </label>
+
+        </div>
+
+
+        <div class="graph-container">
+
+            <canvas id="graph"></canvas>
+
+        </div>
+
+
+        <div
+            id="graphEquation"
+            class="equation-small">
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         TRANSFER FUNCTION TABLE
+         ===================================================== -->
+
+    <div class="card">
+
+        <h2>
+            Transfer Functions
+        </h2>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Name
+                        </th>
+
+                        <th>
+                            Input / Output Relation
+                        </th>
+
+                        <th>
+                            MATLAB Function
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    <tr>
+                        <td>Hard Limit</td>
+                        <td>
+                            \(a=0\) if \(n<0\);
+                            \(a=1\) if \(n\ge0\)
+                        </td>
+                        <td><b>hardlim</b></td>
+                    </tr>
+
+
+                    <tr>
+                        <td>
+                            Symmetrical Hard Limit
+                        </td>
+
+                        <td>
+                            \(a=-1\) if \(n<0\);
+                            \(a=1\) if \(n\ge0\)
+                        </td>
+
+                        <td><b>hardlims</b></td>
+                    </tr>
+
+
+                    <tr>
+                        <td>Linear</td>
+
+                        <td>
+                            \(a=n\)
+                        </td>
+
+                        <td><b>purelin</b></td>
+                    </tr>
+
+
+                    <tr>
+                        <td>Saturating Linear</td>
+
+                        <td>
+                            \(a=0\) for \(n\le0\),
+                            \(a=n\) for \(0<n<1\),
+                            \(a=1\) for \(n\ge1\)
+                        </td>
+
+                        <td><b>satlin</b></td>
+                    </tr>
+
+
+                    <tr>
+                        <td>
+                            Symmetric Saturating Linear
+                        </td>
+
+                        <td>
+                            \(a=-1\) for \(n\le-1\),
+                            \(a=n\) for \(-1<n<1\),
+                            \(a=1\) for \(n\ge1\)
+                        </td>
+
+                        <td><b>satlins</b></td>
+                    </tr>
+
+
+                    <tr>
+                        <td>Log-Sigmoid</td>
+
+                        <td>
+                            \[
+                            a=
+                            \frac{1}{1+e^{-n}}
+                            \]
+                        </td>
+
+                        <td><b>logsig</b></td>
+                    </tr>
+
+
+                    <tr>
+                        <td>
+                            Hyperbolic Tangent Sigmoid
+                        </td>
+
+                        <td>
+                            \(a=\tanh(n)\)
+                        </td>
+
+                        <td><b>tansig</b></td>
+                    </tr>
+
+
+                    <tr>
+                        <td>Positive Linear</td>
+
+                        <td>
+                            \(a=0\) for \(n<0\);
+                            \(a=n\) for \(n\ge0\)
+                        </td>
+
+                        <td><b>poslin</b></td>
+                    </tr>
+
+
+                    <tr>
+                        <td>Competitive</td>
+
+                        <td>
+                            Competitive selection
+                        </td>
+
+                        <td><b>compet</b></td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+
+<!-- =========================================================
+     JAVASCRIPT
+     ========================================================= -->
+
+<script>
+
+
+/* =========================================================
+   ELEMENTS
+   ========================================================= */
+
+const inputCount =
+    document.getElementById("inputCount");
+
+const inputGrid =
+    document.getElementById("inputGrid");
+
+const biasSlider =
+    document.getElementById("biasSlider");
+
+const biasValue =
+    document.getElementById("biasValue");
+
+const functionSelect =
+    document.getElementById("functionSelect");
+
+const graphInput =
+    document.getElementById("graphInput");
+
+const canvas =
+    document.getElementById("graph");
+
+const ctx =
+    canvas.getContext("2d");
+
+
+/* =========================================================
+   DATA
+   ========================================================= */
+
+let inputs = [
+    0.9,
+    0.5,
+    -0.4,
+    1.2,
+    0.7,
+    -0.8,
+    0.3,
+    1.0
+];
+
+
+let weights = [
+    1.5,
+    0.8,
+    -1.2,
+    0.6,
+    1.1,
+    -0.5,
+    0.9,
+    0.4
+];
+
+
+/* =========================================================
+   TRANSFER FUNCTIONS
+   ========================================================= */
+
+function transferFunction(n, type) {
+
+    switch (type) {
+
+        case "hardlim":
+
+            return n < 0 ? 0 : 1;
+
+
+        case "hardlims":
+
+            return n < 0 ? -1 : 1;
+
+
+        case "purelin":
+
+            return n;
+
+
+        case "satlin":
+
+            if (n <= 0)
+                return 0;
+
+            if (n >= 1)
+                return 1;
+
+            return n;
+
+
+        case "satlins":
+
+            if (n <= -1)
+                return -1;
+
+            if (n >= 1)
+                return 1;
+
+            return n;
+
+
+        case "logsig":
+
+            return 1 /
+                (1 + Math.exp(-n));
+
+
+        case "tansig":
+
+            return Math.tanh(n);
+
+
+        case "poslin":
+
+            return Math.max(0, n);
+
+
+        case "compet":
+
+            /*
+             * A real competitive transfer function
+             * requires multiple neurons.
+             *
+             * For one neuron, it always wins.
+             */
+
+            return 1;
+
+
+        default:
+
+            return n;
+    }
+}
+
+
+/* =========================================================
+   DESCRIPTIONS
+   ========================================================= */
+
+const descriptions = {
+
+    hardlim:
+        "<b>Hard Limit:</b> outputs 0 when n &lt; 0 and 1 when n ≥ 0.",
+
+    hardlims:
+        "<b>Symmetrical Hard Limit:</b> outputs −1 when n &lt; 0 and 1 when n ≥ 0.",
+
+    purelin:
+        "<b>Linear:</b> output equals the net input, a = n.",
+
+    satlin:
+        "<b>Saturating Linear:</b> output is limited to the range 0 to 1.",
+
+    satlins:
+        "<b>Symmetric Saturating Linear:</b> output is limited to the range −1 to 1.",
+
+    logsig:
+        "<b>Log-Sigmoid:</b> smooth nonlinear function with output between 0 and 1.",
+
+    tansig:
+        "<b>Hyperbolic Tangent Sigmoid:</b> smooth nonlinear function with output between −1 and 1.",
+
+    poslin:
+        "<b>Positive Linear:</b> negative net inputs produce 0; positive net inputs pass through unchanged.",
+
+    compet:
+        "<b>Competitive:</b> normally used with multiple neurons. With one neuron, it wins automatically."
+};
+
+
+/* =========================================================
+   FUNCTION NAMES
+   ========================================================= */
+
+const functionNames = {
+
+    hardlim: "hardlim",
+
+    hardlims: "hardlims",
+
+    purelin: "purelin",
+
+    satlin: "satlin",
+
+    satlins: "satlins",
+
+    logsig: "logsig",
+
+    tansig: "tansig",
+
+    poslin: "poslin",
+
+    compet: "compet"
+};
+
+
+/* =========================================================
+   FORMAT NUMBER
+   ========================================================= */
+
+function formatNumber(value) {
+
+    if (!Number.isFinite(value))
+        return "0";
+
+    if (Math.abs(value) < 0.0001)
+        return "0";
+
+    return value.toFixed(2);
+}
+
+
+/* =========================================================
+   CREATE INPUT CONTROLS
+   ========================================================= */
+
+function createInputControls() {
+
+    const R =
+        parseInt(inputCount.value);
+
+    inputGrid.innerHTML = "";
+
+    graphInput.innerHTML = "";
+
+
+    for (let i = 0; i < R; i++) {
+
+        const item =
+            document.createElement("div");
+
+        item.className =
+            "input-item";
+
+
+        item.innerHTML = `
+
+            <label style="color:#2874a6;">
+                Input \\(p_${i + 1}\\)
+            </label>
+
+            <input
+                type="range"
+                min="-5"
+                max="5"
+                step="0.1"
+                value="${inputs[i]}"
+                data-index="${i}"
+                class="p-slider"
+            >
+
+            <div
+                class="input-value"
+                id="p-value-${i}">
+                ${inputs[i].toFixed(1)}
+            </div>
+
+
+            <label
+                style="
+                    color:#8e44ad;
+                    margin-top:10px;
+                ">
+
+                Weight \\(w_{1,${i + 1}}\\)
+
+            </label>
+
+
+            <input
+                type="range"
+                min="-5"
+                max="5"
+                step="0.1"
+                value="${weights[i]}"
+                data-index="${i}"
+                class="w-slider"
+            >
+
+
+            <div
+                class="input-value weight-value"
+                id="w-value-${i}">
+
+                ${weights[i].toFixed(1)}
+
+            </div>
+
+        `;
+
+
+        inputGrid.appendChild(item);
+
+
+        const option =
+            document.createElement("option");
+
+        option.value = i;
+
+        option.textContent =
+            `p${i + 1}`;
+
+        graphInput.appendChild(option);
+    }
+
+
+    document
+        .querySelectorAll(".p-slider")
+        .forEach(slider => {
+
+            slider.addEventListener(
+                "input",
+                function () {
+
+                    const i =
+                        parseInt(this.dataset.index);
+
+                    inputs[i] =
+                        parseFloat(this.value);
+
+                    document.getElementById(
+                        `p-value-${i}`
+                    ).textContent =
+                        inputs[i].toFixed(1);
+
+                    updateNeuron();
+                }
+            );
+        });
+
+
+    document
+        .querySelectorAll(".w-slider")
+        .forEach(slider => {
+
+            slider.addEventListener(
+                "input",
+                function () {
+
+                    const i =
+                        parseInt(this.dataset.index);
+
+                    weights[i] =
+                        parseFloat(this.value);
+
+                    document.getElementById(
+                        `w-value-${i}`
+                    ).textContent =
+                        weights[i].toFixed(1);
+
+                    updateNeuron();
+                }
+            );
+        });
+
+
+    typesetMath();
+}
+
+
+/* =========================================================
+   CALCULATE NET INPUT
+   ========================================================= */
+
+function calculateNetInput() {
+
+    const R =
+        parseInt(inputCount.value);
+
+    const b =
+        parseFloat(biasSlider.value);
+
+
+    let sum = b;
+
+
+    for (let i = 0; i < R; i++) {
+
+        sum +=
+            weights[i] * inputs[i];
+    }
+
+
+    return sum;
+}
+
+
+/* =========================================================
+   GENERATE VECTOR LATEX
+   ========================================================= */
+
+function inputVectorLatex(R) {
+
+    let result =
+        "\\begin{bmatrix}";
+
+    for (let i = 0; i < R; i++) {
+
+        result +=
+            inputs[i].toFixed(1);
+
+        if (i < R - 1)
+            result += "\\\\";
+    }
+
+    result +=
+        "\\end{bmatrix}";
+
+    return result;
+}
+
+
+/* =========================================================
+   GENERATE WEIGHT LATEX
+   ========================================================= */
+
+function weightMatrixLatex(R) {
+
+    let result =
+        "\\begin{bmatrix}";
+
+    for (let i = 0; i < R; i++) {
+
+        result +=
+            weights[i].toFixed(1);
+
+        if (i < R - 1)
+            result += "&";
+    }
+
+    result +=
+        "\\end{bmatrix}";
+
+    return result;
+}
+
+
+/* =========================================================
+   TYPESet MATHJAX
+   ========================================================= */
+
+function typesetMath() {
+
+    if (
+        window.MathJax &&
+        MathJax.typesetPromise
+    ) {
+
+        MathJax.typesetPromise()
+            .catch(function(error) {
+
+                console.error(
+                    "MathJax error:",
+                    error
+                );
+
+            });
+    }
+}
+
+
+/* =========================================================
+   UPDATE NEURON
+   ========================================================= */
+
+function updateNeuron() {
+
+    const R =
+        parseInt(inputCount.value);
+
+    const b =
+        parseFloat(biasSlider.value);
+
+    const type =
+        functionSelect.value;
+
+
+    /* ---------------------------------------------------------
+       NET INPUT
+       --------------------------------------------------------- */
+
+    const n =
+        calculateNetInput();
+
+
+    const a =
+        transferFunction(
+            n,
+            type
+        );
+
+
+    /* ---------------------------------------------------------
+       BIAS DISPLAY
+       --------------------------------------------------------- */
+
+    biasValue.textContent =
+        b.toFixed(1);
+
+
+    /* ---------------------------------------------------------
+       FUNCTION DESCRIPTION
+       --------------------------------------------------------- */
+
+    document.getElementById(
+        "functionDescription"
+    ).innerHTML =
+        descriptions[type];
+
+
+    /* ---------------------------------------------------------
+       RESULTS
+       --------------------------------------------------------- */
+
+    document.getElementById(
+        "resultR"
+    ).textContent =
+        R;
+
+
+    document.getElementById(
+        "resultN"
+    ).textContent =
+        formatNumber(n);
+
+
+    document.getElementById(
+        "resultB"
+    ).textContent =
+        b.toFixed(2);
+
+
+    document.getElementById(
+        "resultA"
+    ).textContent =
+        formatNumber(a);
+
+
+    /* ---------------------------------------------------------
+       LIVE EQUATION
+       --------------------------------------------------------- */
+
+    let equation =
+        "\\[";
+
+    equation +=
+        "n = ";
+
+    for (let i = 0; i < R; i++) {
+
+        const sign =
+            weights[i] >= 0
+                ? (i === 0 ? "" : "+")
+                : "";
+
+        equation +=
+            sign +
+            weights[i].toFixed(2) +
+            "p_" +
+            (i + 1);
+
+    }
+
+    equation +=
+        (b >= 0 ? "+" : "") +
+        b.toFixed(2);
+
+
+    equation +=
+        " = " +
+        n.toFixed(2);
+
+    equation +=
+        "\\qquad ";
+
+
+    equation +=
+        "a = " +
+        functionNames[type] +
+        "(" +
+        n.toFixed(2) +
+        ") = " +
+        formatNumber(a);
+
+
+    equation +=
+        "\\]";
+
+
+    document.getElementById(
+        "liveEquation"
+    ).innerHTML =
+        equation;
+
+
+    /* ---------------------------------------------------------
+       DRAW DIAGRAMS
+       --------------------------------------------------------- */
+
+    drawDetailedNeuron(
+        R,
+        b,
+        n,
+        a
+    );
+
+
+    drawAbbreviatedNeuron(
+        R,
+        b,
+        n,
+        a
+    );
+
+
+    /* ---------------------------------------------------------
+       GRAPH
+       --------------------------------------------------------- */
+
+    drawGraph();
+
+
+    /* ---------------------------------------------------------
+       MATHJAX
+       --------------------------------------------------------- */
+
+    typesetMath();
+}
+
+
+/* =========================================================
+   DRAW FIGURE 2.5
+   ========================================================= */
+
+function drawDetailedNeuron(
+    R,
+    b,
+    n,
+    a
+) {
+
+    const svg =
+        document.getElementById(
+            "detailedNeuron"
+        );
+
+
+    svg.innerHTML = "";
+
+
+    /* ---------------------------------------------------------
+       CONSTANTS
+       --------------------------------------------------------- */
+
+    const inputX = 100;
+
+    const sumX = 470;
+
+    const sumY = 300;
+
+    const sumSize = 100;
+
+    const outputX = 720;
+
+    const outputY = 300;
+
+
+    /* ---------------------------------------------------------
+       TITLE
+       --------------------------------------------------------- */
+
+    svg.innerHTML += `
+
+        <text
+            x="170"
+            y="55"
+            text-anchor="middle"
+            font-size="30">
+
+            Inputs
+
+        </text>
+
+
+        <text
+            x="720"
+            y="55"
+            text-anchor="middle"
+            font-size="30">
+
+            Multiple-Input Neuron
+
+        </text>
+
+    `;
+
+
+    /* ---------------------------------------------------------
+       INPUT BRACKET
+       --------------------------------------------------------- */
+
+    svg.innerHTML += `
+
+        <path
+            d="
+            M60 90
+            Q60 65 85 65
+            L255 65
+            Q280 65 280 90
+            "
+            fill="none"
+            stroke="#222"
+            stroke-width="3"
+        />
+
+
+        <path
+            d="
+            M320 90
+            Q320 65 345 65
+            L1000 65
+            Q1025 65 1025 90
+            "
+            fill="none"
+            stroke="#222"
+            stroke-width="3"
+        />
+
+    `;
+
+
+    /* ---------------------------------------------------------
+       INPUT POSITIONS
+       --------------------------------------------------------- */
+
+    const spacing =
+        R <= 5
+            ? 70
+            : 45;
+
+    const startY =
+        sumY -
+        ((R - 1) * spacing) / 2;
+
+
+    for (let i = 0; i < R; i++) {
+
+        const y =
+            startY +
+            i * spacing;
+
+
+        svg.innerHTML += `
+
+            <circle
+                cx="${inputX}"
+                cy="${y}"
+                r="9"
+                fill="#2874a6"
+            />
+
+
+            <text
+                x="45"
+                y="${y + 8}"
+                font-size="23"
+                font-style="italic"
+                fill="#2874a6">
+
+                p${i + 1}
+
+            </text>
+
+
+            <line
+                x1="${inputX + 10}"
+                y1="${y}"
+                x2="${sumX}"
+                y2="${sumY}"
+                stroke="#222"
+                stroke-width="2.5"
+            />
+
+
+            <text
+                x="275"
+                y="${y - 8}"
+                font-size="19"
+                font-style="italic"
+                fill="#8e44ad">
+
+                w₁,${i + 1}
+
+            </text>
+
+        `;
+    }
+
+
+    /* ---------------------------------------------------------
+       SUM
+       --------------------------------------------------------- */
+
+    svg.innerHTML += `
+
+        <rect
+            x="${sumX}"
+            y="${sumY - 50}"
+            width="${sumSize}"
+            height="${sumSize}"
+            fill="white"
+            stroke="#222"
+            stroke-width="3"
+        />
+
+
+        <text
+            x="${sumX + 50}"
+            y="${sumY + 17}"
+            text-anchor="middle"
+            font-size="55">
+
+            Σ
+
+        </text>
+
+    `;
+
+
+    /* ---------------------------------------------------------
+       BIAS
+       --------------------------------------------------------- */
+
+    svg.innerHTML += `
+
+        <line
+            x1="${sumX + 50}"
+            y1="${sumY + 150}"
+            x2="${sumX + 50}"
+            y2="${sumY + 50}"
+            stroke="#222"
+            stroke-width="3"
+        />
+
+
+        <circle
+            cx="${sumX + 50}"
+            cy="${sumY + 150}"
+            r="9"
+            fill="#e67e22"
+        />
+
+
+        <text
+            x="${sumX + 105}"
+            y="${sumY + 100}"
+            font-size="22"
+            font-style="italic"
+            fill="#e67e22">
+
+            b = ${b.toFixed(2)}
+
+        </text>
+
+
+        <text
+            x="${sumX + 50}"
+            y="${sumY + 185}"
+            text-anchor="middle"
+            font-size="20">
+
+            1
+
+        </text>
+
+    `;
+
+
+    /* ---------------------------------------------------------
+       OUTPUT
+       --------------------------------------------------------- */
+
+    svg.innerHTML += `
+
+        <line
+            x1="${sumX + sumSize}"
+            y1="${sumY}"
+            x2="${outputX}"
+            y2="${sumY}"
+            stroke="#222"
+            stroke-width="3"
+        />
+
+
+        <polygon
+            points="
+            ${outputX},
+            ${sumY}
+            ${outputX - 20},
+            ${sumY - 12}
+            ${outputX - 20},
+            ${sumY + 12}
+            "
+            fill="#222"
+        />
+
+
+        <text
+            x="${outputX - 70}"
+            y="${sumY - 30}"
+            font-size="23"
+            font-style="italic">
+
+            n
+
+        </text>
+
+
+        <text
+            x="${outputX - 70}"
+            y="${sumY + 45}"
+            font-size="19"
+            font-weight="bold"
+            fill="#34495e">
+
+            ${n.toFixed(2)}
+
+        </text>
+
+
+        <rect
+            x="${outputX}"
+            y="${sumY - 50}"
+            width="120"
+            height="100"
+            fill="#eaf8f0"
+            stroke="#27ae60"
+            stroke-width="3"
+        />
+
+
+        <text
+            x="${outputX + 60}"
+            y="${sumY + 10}"
+            text-anchor="middle"
+            font-size="27"
+            font-style="italic"
+            fill="#27ae60">
+
+            ${functionNames[functionSelect.value]}
+
+        </text>
+
+
+        <line
+            x1="${outputX + 120}"
+            y1="${sumY}"
+            x2="1080"
+            y2="${sumY}"
+            stroke="#222"
+            stroke-width="3"
+        />
+
+
+        <polygon
+            points="
+            1080,
+            ${sumY}
+            1060,
+            ${sumY - 12}
+            1060,
+            ${sumY + 12}
+            "
+            fill="#222"
+        />
+
+
+        <text
+            x="1090"
+            y="${sumY + 8}"
+            font-size="24"
+            font-style="italic"
+            fill="#c0392b">
+
+            a = ${formatNumber(a)}
+
+        </text>
+
+    `;
+
+
+    /* ---------------------------------------------------------
+       EQUATION
+       --------------------------------------------------------- */
+
+    svg.innerHTML += `
+
+        <text
+            x="600"
+            y="560"
+            text-anchor="middle"
+            font-size="26"
+            font-style="italic">
+
+            a = f(Wp + b)
+
+        </text>
+
+    `;
+}
+
+
+/* =========================================================
+   DRAW FIGURE 2.6
+   ========================================================= */
+
+function drawAbbreviatedNeuron(
+    R,
+    b,
+    n,
+    a
+) {
+
+    const svg =
+        document.getElementById(
+            "abbreviatedNeuron"
+        );
+
+
+    svg.innerHTML = "";
+
+
+    svg.innerHTML += `
+
+        <!-- INPUT -->
+
+        <text
+            x="100"
+            y="60"
+            font-size="30">
+
+            Input
+
+        </text>
+
+
+        <rect
+            x="60"
+            y="100"
+            width="130"
+            height="350"
+            fill="#eeeeee"
+            stroke="#222"
+            stroke-width="3"
+        />
+
+
+        <text
+            x="125"
+            y="280"
+            text-anchor="middle"
+            font-size="30"
+            font-style="italic">
+
+            p
+
+        </text>
+
+
+        <text
+            x="125"
+            y="320"
+            text-anchor="middle"
+            font-size="20">
+
+            R × 1
+
+        </text>
+
+
+        <!-- WEIGHT MATRIX -->
+
+        <rect
+            x="330"
+            y="145"
+            width="150"
+            height="90"
+            fill="white"
+            stroke="#222"
+            stroke-width="3"
+        />
+
+
+        <text
+            x="405"
+            y="200"
+            text-anchor="middle"
+            font-size="30"
+            font-style="italic">
+
+            W
+
+        </text>
+
+
+        <text
+            x="405"
+            y="260"
+            text-anchor="middle"
+            font-size="19">
+
+            1 × R
+
+        </text>
+
+
+        <!-- BIAS -->
+
+        <rect
+            x="330"
+            y="320"
+            width="150"
+            height="90"
+            fill="white"
+            stroke="#222"
+            stroke-width="3"
+        />
+
+
+        <text
+            x="405"
+            y="375"
+            text-anchor="middle"
+            font-size="30"
+            font-style="italic"
+            fill="#e67e22">
+
+            b
+
+        </text>
+
+
+        <text
+            x="405"
+            y="430"
+            text-anchor="middle"
+            font-size="19">
+
+            1 × 1
+
+        </text>
+
+
+        <!-- SUM -->
+
+        <circle
+            cx="650"
+            cy="280"
+            r="48"
+            fill="white"
+            stroke="#222"
+            stroke-width="3"
+        />
+
+
+        <text
+            x="650"
+            y="294"
+            text-anchor="middle"
+            font-size="42">
+
+            +
+
+        </text>
+
+
+        <!-- TRANSFER -->
+
+        <rect
+            x="800"
+            y="200"
+            width="130"
+            height="160"
+            fill="#eaf8f0"
+            stroke="#27ae60"
+            stroke-width="3"
+        />
+
+
+        <text
+            x="865"
+            y="285"
+            text-anchor="middle"
+            font-size="28"
+            font-style="italic"
+            fill="#27ae60">
+
+            f
+
+        </text>
+
+
+        <text
+            x="865"
+            y="325"
+            text-anchor="middle"
+            font-size="18">
+
+            1 × 1
+
+        </text>
+
+
+        <!-- OUTPUT -->
+
+        <text
+            x="1040"
+            y="285"
+            text-anchor="middle"
+            font-size="28"
+            font-style="italic"
+            fill="#c0392b">
+
+            a
+
+        </text>
+
+
+        <text
+            x="1040"
+            y="325"
+            text-anchor="middle"
+            font-size="18">
+
+            1 × 1
+
+        </text>
+
+
+        <!-- CONNECTIONS -->
+
+        <line
+            x1="190"
+            y1="275"
+            x2="330"
+            y2="190"
+            stroke="#222"
+            stroke-width="3"
+        />
+
+
+        <polygon
+            points="330,190 312,185 320,202"
+            fill="#222"
+        />
+
+
+        <line
+            x1="480"
+            y1="190"
+            x2="610"
+            y2="270"
+            stroke="#222"
+            stroke-width="3"
+        />
+
+
+        <line
+            x1="480"
+            y1="365"
+            x2="610"
+            y2="290"
+            stroke="#222"
+            stroke-width="3"
+        />
+
+
+        <line
+            x1="698"
+            y1="280"
+            x2="800"
+            y2="280"
+            stroke="#222"
+            stroke-width="3"
+        />
+
+
+        <polygon
+            points="800,280 782,270 782,290"
+            fill="#222"
+        />
+
+
+        <line
+            x1="930"
+            y1="280"
+            x2="1010"
+            y2="280"
+            stroke="#222"
+            stroke-width="3"
+        />
+
+
+        <polygon
+            points="1010,280 992,270 992,290"
+            fill="#222"
+        />
+
+
+        <!-- NET INPUT -->
+
+        <text
+            x="750"
+            y="250"
+            font-size="22"
+            font-style="italic">
+
+            n
+
+        </text>
+
+
+        <text
+            x="750"
+            y="310"
+            font-size="18"
+            font-weight="bold"
+            fill="#34495e">
+
+            ${n.toFixed(2)}
+
+        </text>
+
+
+        <!-- DIMENSIONS -->
+
+        <text
+            x="125"
+            y="490"
+            text-anchor="middle"
+            font-size="20">
+
+            R
+
+        </text>
+
+
+        <text
+            x="405"
+            y="490"
+            text-anchor="middle"
+            font-size="20">
+
+            1 × R
+
+        </text>
+
+
+        <!-- EQUATION -->
+
+        <text
+            x="600"
+            y="550"
+            text-anchor="middle"
+            font-size="27"
+            font-style="italic">
+
+            a = f(Wp + b)
+
+        </text>
+
+    `;
+}
+
+
+/* =========================================================
+   GRAPH
+   ========================================================= */
+
+function drawGraph() {
+
+    const R =
+        parseInt(inputCount.value);
+
+    const selected =
+        parseInt(graphInput.value || 0);
+
+    const w =
+        weights[selected];
+
+    const b =
+        parseFloat(biasSlider.value);
+
+    const type =
+        functionSelect.value;
+
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+
+    const dpr =
+        window.devicePixelRatio || 1;
+
+
+    canvas.width =
+        rect.width * dpr;
+
+    canvas.height =
+        rect.height * dpr;
+
+
+    ctx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+    );
+
+
+    const width =
+        rect.width;
+
+    const height =
+        rect.height;
+
+
+    const left = 70;
+
+    const right = 30;
+
+    const top = 30;
+
+    const bottom = 60;
+
+
+    const graphWidth =
+        width - left - right;
+
+    const graphHeight =
+        height - top - bottom;
+
+
+    const xMin = -5;
+
+    const xMax = 5;
+
+
+    /* ---------------------------------------------------------
+       Contributions from other inputs
+       --------------------------------------------------------- */
+
+    let fixedContribution = b;
+
+
+    for (let i = 0; i < R; i++) {
+
+        if (i !== selected) {
+
+            fixedContribution +=
+                weights[i] * inputs[i];
+        }
+    }
+
+
+    /* ---------------------------------------------------------
+       Y RANGE
+       --------------------------------------------------------- */
+
+    let yMin;
+
+    let yMax;
+
+
+    if (
+        type === "hardlim" ||
+        type === "satlin" ||
+        type === "logsig"
+    ) {
+
+        yMin = -0.2;
+
+        yMax = 1.2;
+
+    }
+
+    else if (
+        type === "hardlims" ||
+        type === "satlins" ||
+        type === "tansig"
+    ) {
+
+        yMin = -1.2;
+
+        yMax = 1.2;
+
+    }
+
+    else {
+
+        const maxValue =
+            Math.max(
+                5,
+                Math.abs(w) * 5 +
+                Math.abs(fixedContribution)
+            );
+
+
+        yMin =
+            -maxValue;
+
+        yMax =
+            maxValue;
+    }
+
+
+    function xToPixel(x) {
+
+        return left +
+            (x - xMin) /
+            (xMax - xMin) *
+            graphWidth;
+    }
+
+
+    function yToPixel(y) {
+
+        return top +
+            (yMax - y) /
+            (yMax - yMin) *
+            graphHeight;
+    }
+
+
+    /* ---------------------------------------------------------
+       BACKGROUND
+       --------------------------------------------------------- */
+
+    ctx.fillStyle =
+        "#ffffff";
+
+    ctx.fillRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    /* ---------------------------------------------------------
+       GRID
+       --------------------------------------------------------- */
+
+    ctx.strokeStyle =
+        "#e5e7e9";
+
+    ctx.lineWidth = 1;
+
+
+    for (
+        let x = -5;
+        x <= 5;
+        x++
+    ) {
+
+        const px =
+            xToPixel(x);
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            px,
+            top
+        );
+
+        ctx.lineTo(
+            px,
+            height - bottom
+        );
+
+        ctx.stroke();
+    }
+
+
+    const yStep =
+        chooseYStep(
+            yMin,
+            yMax
+        );
+
+
+    for (
+        let y =
+            Math.ceil(yMin / yStep) * yStep;
+
+        y <= yMax;
+
+        y += yStep
+    ) {
+
+        const py =
+            yToPixel(y);
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            left,
+            py
+        );
+
+        ctx.lineTo(
+            width - right,
+            py
+        );
+
+        ctx.stroke();
+    }
+
+
+    /* ---------------------------------------------------------
+       AXES
+       --------------------------------------------------------- */
+
+    ctx.strokeStyle =
+        "#34495e";
+
+    ctx.lineWidth = 2;
+
+
+    if (
+        yMin <= 0 &&
+        yMax >= 0
+    ) {
+
+        const py =
+            yToPixel(0);
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            left,
+            py
+        );
+
+        ctx.lineTo(
+            width - right,
+            py
+        );
+
+        ctx.stroke();
+    }
+
+
+    if (
+        xMin <= 0 &&
+        xMax >= 0
+    ) {
+
+        const px =
+            xToPixel(0);
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            px,
+            top
+        );
+
+        ctx.lineTo(
+            px,
+            height - bottom
+        );
+
+        ctx.stroke();
+    }
+
+
+    /* ---------------------------------------------------------
+       LABELS
+       --------------------------------------------------------- */
+
+    ctx.fillStyle =
+        "#566573";
+
+    ctx.font =
+        "13px Arial";
+
+
+    ctx.textAlign =
+        "center";
+
+
+    for (
+        let x = -5;
+        x <= 5;
+        x++
+    ) {
+
+        ctx.fillText(
+            x.toString(),
+            xToPixel(x),
+            height - bottom + 22
+        );
+    }
+
+
+    ctx.textAlign =
+        "right";
+
+
+    for (
+        let y =
+            Math.ceil(yMin / yStep) * yStep;
+
+        y <= yMax;
+
+        y += yStep
+    ) {
+
+        ctx.fillText(
+            formatAxisNumber(y),
+            left - 10,
+            yToPixel(y) + 4
+        );
+    }
+
+
+    /* ---------------------------------------------------------
+       AXIS TITLES
+       --------------------------------------------------------- */
+
+    ctx.fillStyle =
+        "#17202a";
+
+    ctx.font =
+        "bold 16px Arial";
+
+    ctx.textAlign =
+        "center";
+
+
+    ctx.fillText(
+        `Input p${selected + 1}`,
+        left + graphWidth / 2,
+        height - 12
+    );
+
+
+    ctx.save();
+
+    ctx.translate(
+        18,
+        top + graphHeight / 2
+    );
+
+    ctx.rotate(
+        -Math.PI / 2
+    );
+
+
+    ctx.fillText(
+        "Output a",
+        0,
+        0
+    );
+
+
+    ctx.restore();
+
+
+    /* ---------------------------------------------------------
+       CURVE
+       --------------------------------------------------------- */
+
+    ctx.strokeStyle =
+        "#2874a6";
+
+    ctx.lineWidth = 4;
+
+    ctx.beginPath();
+
+
+    let firstPoint = true;
+
+
+    for (
+        let i = 0;
+        i <= 600;
+        i++
+    ) {
+
+        const p =
+            xMin +
+            (i / 600) *
+            (xMax - xMin);
+
+
+        const n =
+            w * p +
+            fixedContribution;
+
+
+        const a =
+            transferFunction(
+                n,
+                type
+            );
+
+
+        const px =
+            xToPixel(p);
+
+        const py =
+            yToPixel(a);
+
+
+        if (!Number.isFinite(py)) {
+
+            firstPoint = true;
+
+            continue;
+        }
+
+
+        if (firstPoint) {
+
+            ctx.moveTo(
+                px,
+                py
+            );
+
+            firstPoint = false;
+
+        } else {
+
+            ctx.lineTo(
+                px,
+                py
+            );
+        }
+    }
+
+
+    ctx.stroke();
+
+
+    /* ---------------------------------------------------------
+       CURRENT POINT
+       --------------------------------------------------------- */
+
+    const currentP =
+        inputs[selected];
+
+
+    const currentN =
+        w * currentP +
+        fixedContribution;
+
+
+    const currentA =
+        transferFunction(
+            currentN,
+            type
+        );
+
+
+    const currentX =
+        xToPixel(currentP);
+
+    const currentY =
+        yToPixel(currentA);
+
+
+    /* ---------------------------------------------------------
+       GUIDE
+       --------------------------------------------------------- */
+
+    ctx.strokeStyle =
+        "#c0392b";
+
+    ctx.lineWidth = 1.5;
+
+    ctx.setLineDash(
+        [6, 5]
+    );
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        currentX,
+        height - bottom
+    );
+
+    ctx.lineTo(
+        currentX,
+        currentY
+    );
+
+    ctx.stroke();
+
+
+    ctx.setLineDash([]);
+
+
+    /* ---------------------------------------------------------
+       POINT
+       --------------------------------------------------------- */
+
+    ctx.fillStyle =
+        "#c0392b";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        currentX,
+        currentY,
+        7,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    /* ---------------------------------------------------------
+       POINT LABEL
+       --------------------------------------------------------- */
+
+    ctx.font =
+        "bold 15px Arial";
+
+    ctx.textAlign =
+        "left";
+
+
+    let labelX =
+        currentX + 12;
+
+
+    let labelY =
+        currentY - 12;
+
+
+    if (
+        labelX >
+        width - 180
+    ) {
+
+        labelX =
+            currentX - 170;
+    }
+
+
+    if (labelY < 25) {
+
+        labelY =
+            currentY + 25;
+    }
+
+
+    ctx.fillText(
+        `p${selected + 1} = ${currentP.toFixed(2)}, a = ${formatNumber(currentA)}`,
+        labelX,
+        labelY
+    );
+
+
+    /* ---------------------------------------------------------
+       GRAPH EQUATION
+       --------------------------------------------------------- */
+
+    document.getElementById(
+        "graphEquation"
+    ).innerHTML = `
+
+        \\[
+        n =
+        ${w.toFixed(2)}p_${selected + 1}
+        +
+        ${fixedContribution.toFixed(2)}
+        \\qquad
+        a =
+        ${functionNames[type]}(n)
+        \\]
+
+    `;
+
+
+    typesetMath();
+}
+
+
+/* =========================================================
+   Y STEP
+   ========================================================= */
+
+function chooseYStep(
+    min,
+    max
+) {
+
+    const range =
+        max - min;
+
+
+    if (range <= 2)
+        return 0.5;
+
+
+    if (range <= 5)
+        return 1;
+
+
+    if (range <= 10)
+        return 2;
+
+
+    if (range <= 20)
+        return 5;
+
+
+    return 10;
+}
+
+
+/* =========================================================
+   FORMAT AXIS
+   ========================================================= */
+
+function formatAxisNumber(
+    value
+) {
+
+    if (
+        Math.abs(value) < 0.001
+    )
+        return "0";
+
+
+    if (
+        Number.isInteger(value)
+    )
+        return value.toString();
+
+
+    return value.toFixed(1);
+}
+
+
+/* =========================================================
+   EVENTS
+   ========================================================= */
+
+inputCount.addEventListener(
+    "change",
+    function () {
+
+        createInputControls();
+
+        updateNeuron();
+    }
+);
+
+
+biasSlider.addEventListener(
+    "input",
+    updateNeuron
+);
+
+
+functionSelect.addEventListener(
+    "change",
+    updateNeuron
+);
+
+
+graphInput.addEventListener(
+    "change",
+    updateNeuron
+);
+
+
+window.addEventListener(
+    "resize",
+    updateNeuron
+);
+
+
+/* =========================================================
+   INITIALIZATION
+   ========================================================= */
+
+createInputControls();
+
+updateNeuron();
+
+
+</script>
+
+
+</body>
+
+</html>
