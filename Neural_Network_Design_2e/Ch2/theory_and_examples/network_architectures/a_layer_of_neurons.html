@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Architecture: Layer of Neurons Explorer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- KaTeX CSS & JS for LaTeX Math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .serif-font {
+            font-family: 'Lora', Georgia, serif;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        /* Monochrome classic print scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #ffffff;
+            border: 1px solid #000000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #000000;
+        }
+        /* SVG Interactive Line Styling */
+        .weight-line {
+            transition: stroke-width 0.15s ease, opacity 0.15s ease;
+        }
+        .weight-line:hover {
+            stroke-width: 3px !important;
+            cursor: pointer;
+        }
+        .katex-display {
+            margin: 0.25em 0 !important;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 2px 0;
+        }
+    </style>
+</head>
+<body class="bg-white text-black min-h-screen flex flex-col antialiased border-t-4 border-black">
+
+    <!-- Header Section -->
+    <header class="border-b-2 border-black bg-white sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 border-2 border-black bg-black text-white">
+                    <i class="fa-solid fa-network-wired text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl leading-snug tracking-tight serif-font">Neural Network Architecture Explorer</h1>
+                    <p class="text-xs text-black font-medium">Chapter 2: A Layer of $S$ Neurons ($R$ Inputs) &mdash; Strict Black &amp; White Edition</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 bg-white p-1 border-2 border-black text-xs">
+                <span class="text-black font-bold px-2 uppercase tracking-wider text-[11px]">Presets:</span>
+                <button onclick="loadPreset('default')" class="px-3 py-1 border border-black bg-white hover:bg-black hover:text-white font-medium transition">3×3 Standard</button>
+                <button onclick="loadPreset('classifier')" class="px-3 py-1 border border-black bg-white hover:bg-black hover:text-white font-medium transition">4×2 Classifier</button>
+                <button onclick="loadPreset('perceptrons')" class="px-3 py-1 border border-black bg-white hover:bg-black hover:text-white font-medium transition">2×3 Logic</button>
+                <button onclick="randomizeAll()" class="px-3 py-1 border border-black bg-black text-white hover:bg-gray-800 font-medium transition">
+                    <i class="fa-solid fa-dice mr-1"></i> Randomize
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Controls & Visual Diagrams -->
+        <div class="lg:col-span-7 flex flex-col space-y-6">
+
+            <!-- Architecture Dimension Controls -->
+            <div class="border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-black border-b-2 border-black pb-1 mb-3 flex items-center justify-between">
+                    <span>1. Layer Dimension Controls</span>
+                    <span class="serif-font text-black font-normal italic normal-case">Configure $R$ and $S$</span>
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Inputs R Slider -->
+                    <div class="bg-white p-3 border-2 border-black">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-bold text-black font-mono">Inputs ($R$)</label>
+                            <span id="label-R" class="text-xs font-bold code-font bg-black text-white px-2 py-0.5">3 inputs</span>
+                        </div>
+                        <input type="range" id="input-R" min="1" max="5" value="3" class="w-full accent-black cursor-pointer" oninput="updateDimensions()">
+                        <p class="text-[11px] text-black mt-1">Input vector dimension $\mathbf{p} \in \mathbb{R}^{R \times 1}$</p>
+                    </div>
+
+                    <!-- Neurons S Slider -->
+                    <div class="bg-white p-3 border-2 border-black">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-bold text-black font-mono">Neurons ($S$)</label>
+                            <span id="label-S" class="text-xs font-bold code-font bg-black text-white px-2 py-0.5">3 neurons</span>
+                        </div>
+                        <input type="range" id="input-S" min="1" max="5" value="3" class="w-full accent-black cursor-pointer" oninput="updateDimensions()">
+                        <p class="text-[11px] text-black mt-1">Output vector dimension $\mathbf{a} \in \mathbb{R}^{S \times 1}$</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Figure Diagrams Container -->
+            <div class="border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col">
+                <!-- Tab Switching Bar -->
+                <div class="flex border-b-2 border-black bg-white">
+                    <button id="tab-fig27" onclick="switchTab('fig27')" class="flex-1 py-2.5 px-4 text-xs font-bold text-white bg-black border-r-2 border-black flex items-center justify-center space-x-2 transition">
+                        <i class="fa-solid fa-diagram-project"></i>
+                        <span>Figure 2.7: Detailed Architecture</span>
+                    </button>
+                    <button id="tab-fig28" onclick="switchTab('fig28')" class="flex-1 py-2.5 px-4 text-xs font-bold text-black bg-white hover:bg-black hover:text-white flex items-center justify-center space-x-2 transition">
+                        <i class="fa-solid fa-cubes-stacked"></i>
+                        <span>Figure 2.8: Abbreviated Notation</span>
+                    </button>
+                </div>
+
+                <!-- Tab 1: Detailed View (Figure 2.7) -->
+                <div id="view-fig27" class="p-4 bg-white min-h-[440px] flex flex-col justify-between">
+                    <div class="flex justify-between items-center text-xs text-black mb-2 border-b-2 border-black pb-1">
+                        <span class="font-bold serif-font text-sm">Figure 2.7 Layer of $S$ Neurons (With Dynamic Live Values)</span>
+                        <div class="flex items-center space-x-4 text-[11px] font-medium">
+                            <span class="inline-flex items-center"><span class="w-3 h-0.5 bg-black mr-1"></span> Weight $w_{i,j}$</span>
+                            <span class="inline-flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-black mr-1"></span> Input $p_j$</span>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic SVG Canvas for Fig 2.7 -->
+                    <div class="w-full flex-1 flex items-center justify-center overflow-x-auto py-2">
+                        <svg id="svg-fig27" class="w-full h-auto max-h-[520px]" viewBox="0 0 780 460" preserveAspectRatio="xMidYMid meet"></svg>
+                    </div>
+
+                    <div class="mt-2 text-center text-xs text-black border-t-2 border-black pt-2 font-bold font-mono">
+                        Equation: $\mathbf{a} = \mathbf{f}(\mathbf{W}\mathbf{p} + \mathbf{b})$ &mdash; Hover over nodes or weights to highlight connections
+                    </div>
+                </div>
+
+                <!-- Tab 2: Abbreviated View (Figure 2.8) -->
+                <div id="view-fig28" class="p-6 hidden bg-white min-h-[440px] flex flex-col justify-between items-center">
+                    <div class="w-full text-xs text-black mb-2 flex justify-between items-center border-b-2 border-black pb-2">
+                        <span class="font-bold serif-font text-sm">Figure 2.8 Layer of $S$ Neurons, Abbreviated Notation</span>
+                        <span id="matrix-dims-badge" class="px-2 py-0.5 bg-black text-white font-mono text-[11px]">W: S×R</span>
+                    </div>
+
+                    <!-- Accurate SVG Reproduction of Figure 2.8 Textbook Diagram -->
+                    <div class="w-full flex-1 flex items-center justify-center overflow-x-auto py-2">
+                        <svg id="svg-fig28" class="w-full h-auto max-h-[420px]" viewBox="0 0 650 360" preserveAspectRatio="xMidYMid meet"></svg>
+                    </div>
+
+                    <div class="w-full text-center text-xs text-black bg-white p-2 border-2 border-black font-bold">
+                        Figure 2.8 Layer of $S$ Neurons, Abbreviated Notation
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activation Function Operating Point Canvas -->
+            <div class="border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col">
+                <div class="flex justify-between items-center mb-2 border-b-2 border-black pb-1">
+                    <h3 class="text-xs font-bold text-black uppercase flex items-center">
+                        <i class="fa-solid fa-chart-line text-black mr-1.5"></i>
+                        Activation Transfer Plotter ($n_i \rightarrow a_i$)
+                    </h3>
+                    <span class="text-[11px] text-black font-mono">Monochrome Curves</span>
+                </div>
+                <div class="w-full bg-white border-2 border-black p-2 flex items-center justify-center">
+                    <canvas id="tf-canvas" width="600" height="180" class="w-full h-44"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Interactive Parameter Editors & Live Math Evaluator -->
+        <div class="lg:col-span-5 flex flex-col space-y-6">
+
+            <!-- Interactive Parameters Editor -->
+            <div class="border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-4">
+                
+                <!-- Input Vector p Editor -->
+                <div>
+                    <div class="flex justify-between items-center mb-1.5 border-b-2 border-black pb-1">
+                        <label class="text-xs font-bold uppercase tracking-wider text-black flex items-center">
+                            <i class="fa-solid fa-sliders mr-1.5"></i> Input Vector $\mathbf{p}$ ($R \times 1$)
+                        </label>
+                        <button onclick="resetInputs()" class="text-[11px] text-black font-bold hover:underline">Reset p to 0</button>
+                    </div>
+                    <div id="input-vector-container" class="grid gap-2"></div>
+                </div>
+
+                <!-- Weight Matrix W Editor -->
+                <div>
+                    <div class="flex justify-between items-center mb-1.5 border-b-2 border-black pb-1">
+                        <label class="text-xs font-bold uppercase tracking-wider text-black flex items-center">
+                            <i class="fa-solid fa-table-cells mr-1.5"></i> Weight Matrix $\mathbf{W}$ ($S \times R$)
+                        </label>
+                        <span class="text-[10px] text-black font-bold">Rows: $S$, Cols: $R$</span>
+                    </div>
+                    <div id="weight-matrix-container" class="overflow-x-auto p-1.5 bg-white border-2 border-black"></div>
+                </div>
+
+                <!-- Bias Vector b & Transfer Functions Editor -->
+                <div>
+                    <div class="flex justify-between items-center mb-1.5 border-b-2 border-black pb-1">
+                        <label class="text-xs font-bold uppercase tracking-wider text-black flex items-center">
+                            <i class="fa-solid fa-sliders-h mr-1.5"></i> Biases $\mathbf{b}$ &amp; Transfer Functions
+                        </label>
+                    </div>
+                    <div id="bias-tf-container" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- Live KaTeX Step-by-Step Math Evaluator -->
+            <div class="border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex-1 flex flex-col">
+                <div class="flex justify-between items-center mb-3 border-b-2 border-black pb-1">
+                    <h3 class="text-xs font-bold text-black uppercase flex items-center">
+                        <i class="fa-solid fa-calculator text-black mr-2"></i>
+                        Live Vector-Matrix Math Evaluator
+                    </h3>
+                    <span class="text-[10px] bg-black text-white px-2 py-0.5 font-mono font-bold">KaTeX Live</span>
+                </div>
+
+                <!-- Live Matrix Math Output -->
+                <div class="bg-white text-xs text-black space-y-4 flex-1">
+                    <!-- Step 1: Net Input Matrix Eq -->
+                    <div class="border-2 border-black p-2 bg-white">
+                        <p class="text-[11px] text-black font-bold border-b border-black pb-1 mb-1 font-mono">
+                            1. Net Input Vector $\mathbf{n} = \mathbf{W}\mathbf{p} + \mathbf{b}$
+                        </p>
+                        <div id="math-net-input" class="py-1 flex justify-center items-center overflow-x-auto"></div>
+                    </div>
+
+                    <!-- Step 2: Output Vector Eq -->
+                    <div class="border-2 border-black p-2 bg-white">
+                        <p class="text-[11px] text-black font-bold border-b border-black pb-1 mb-1 font-mono">
+                            2. Output Vector $\mathbf{a} = \mathbf{f}(\mathbf{n})$
+                        </p>
+                        <div id="math-output-vector" class="py-1 flex justify-center items-center overflow-x-auto"></div>
+                    </div>
+
+                    <!-- Step 3: Individual Neuron Calculation Subcards -->
+                    <div>
+                        <p class="text-[11px] text-black font-bold uppercase tracking-wide mb-1.5">
+                            3. Individual Scalar Neuron Breakdown
+                        </p>
+                        <div id="math-neuron-details" class="space-y-2 max-h-64 overflow-y-auto pr-1"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- JavaScript Controller -->
+    <script>
+        // Global Application State
+        let state = {
+            R: 3, // Inputs count
+            S: 3, // Neurons count
+            p: [1.0, -0.5, 2.0], // Input vector values
+            W: [ // Weight matrix (S x R)
+                [0.5, -1.2, 0.8],
+                [1.5, 0.4, -0.9],
+                [-0.7, 0.9, 1.1]
+            ],
+            b: [0.2, -0.5, 1.0], // Bias vector values
+            tf: ['logsig', 'tansig', 'purelin'], // Transfer function keys per neuron
+            activeTab: 'fig27',
+            hoverNeuron: -1,
+            hoverInput: -1
+        };
+
+        // Available Transfer Functions Definition
+        const TRANSFER_FUNCTIONS = {
+            'purelin': { name: 'Linear (purelin)', fn: n => n },
+            'hardlim': { name: 'Hard-Limit (hardlim)', fn: n => n >= 0 ? 1 : 0 },
+            'logsig': { name: 'Log-Sigmoid (logsig)', fn: n => 1 / (1 + Math.exp(-n)) },
+            'tansig': { name: 'Tan-Sigmoid (tansig)', fn: n => Math.tanh(n) },
+            'relu': { name: 'Poslin / ReLU', fn: n => Math.max(0, n) }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initApp();
+        });
+
+        function initApp() {
+            renderControls();
+            calculateAndRender();
+            
+            window.addEventListener('resize', debounce(() => {
+                renderDiagram();
+                renderFig28();
+                drawTFPlot();
+            }, 100));
+        }
+
+        function renderPageMath() {
+            if (window.renderMathInElement) {
+                try {
+                    renderMathInElement(document.body, {
+                        delimiters: [
+                            {left: "$$", right: "$$", display: true},
+                            {left: "$", right: "$", display: false}
+                        ],
+                        throwOnError: false
+                    });
+                } catch(e) {
+                    console.error("KaTeX Auto-Render error:", e);
+                }
+            }
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        function updateDimensions() {
+            const newR = parseInt(document.getElementById('input-R').value);
+            const newS = parseInt(document.getElementById('input-S').value);
+
+            // Resize p vector
+            if (newR > state.R) {
+                for (let i = state.R; i < newR; i++) {
+                    state.p.push(parseFloat((Math.random() * 2 - 1).toFixed(1)));
+                }
+            } else {
+                state.p = state.p.slice(0, newR);
+            }
+
+            // Resize b vector and transfer functions
+            if (newS > state.S) {
+                for (let i = state.S; i < newS; i++) {
+                    state.b.push(parseFloat((Math.random() * 2 - 1).toFixed(1)));
+                    state.tf.push('logsig');
+                }
+            } else {
+                state.b = state.b.slice(0, newS);
+                state.tf = state.tf.slice(0, newS);
+            }
+
+            // Resize W matrix (S x R)
+            let newW = [];
+            for (let i = 0; i < newS; i++) {
+                let row = [];
+                for (let j = 0; j < newR; j++) {
+                    if (i < state.S && j < state.R) {
+                        row.push(state.W[i][j]);
+                    } else {
+                        row.push(parseFloat((Math.random() * 2 - 1).toFixed(1)));
+                    }
+                }
+                newW.push(row);
+            }
+            state.W = newW;
+            state.R = newR;
+            state.S = newS;
+
+            document.getElementById('label-R').innerText = `${newR} input${newR > 1 ? 's' : ''}`;
+            document.getElementById('label-S').innerText = `${newS} neuron${newS > 1 ? 's' : ''}`;
+
+            renderControls();
+            calculateAndRender();
+        }
+
+        function loadPreset(type) {
+            if (type === 'default') {
+                state.R = 3;
+                state.S = 3;
+                state.p = [1.0, -0.5, 2.0];
+                state.W = [
+                    [0.5, -1.2, 0.8],
+                    [1.5, 0.4, -0.9],
+                    [-0.7, 0.9, 1.1]
+                ];
+                state.b = [0.2, -0.5, 1.0];
+                state.tf = ['logsig', 'tansig', 'purelin'];
+            } else if (type === 'classifier') {
+                state.R = 4;
+                state.S = 2;
+                state.p = [0.8, 0.2, 1.5, -0.4];
+                state.W = [
+                    [1.1, -0.8, 0.5, 0.3],
+                    [-0.4, 1.2, -1.0, 0.9]
+                ];
+                state.b = [-0.3, 0.4];
+                state.tf = ['logsig', 'logsig'];
+            } else if (type === 'perceptrons') {
+                state.R = 2;
+                state.S = 3;
+                state.p = [1.0, 1.0];
+                state.W = [
+                    [1.0, 1.0],
+                    [0.5, -0.5],
+                    [-1.0, -1.0]
+                ];
+                state.b = [-1.5, 0.0, 0.5];
+                state.tf = ['hardlim', 'hardlim', 'hardlim'];
+            }
+
+            document.getElementById('input-R').value = state.R;
+            document.getElementById('input-S').value = state.S;
+            document.getElementById('label-R').innerText = `${state.R} input${state.R > 1 ? 's' : ''}`;
+            document.getElementById('label-S').innerText = `${state.S} neuron${state.S > 1 ? 's' : ''}`;
+
+            renderControls();
+            calculateAndRender();
+        }
+
+        function randomizeAll() {
+            for (let j = 0; j < state.R; j++) {
+                state.p[j] = parseFloat((Math.random() * 4 - 2).toFixed(1));
+            }
+            for (let i = 0; i < state.S; i++) {
+                state.b[i] = parseFloat((Math.random() * 2 - 1).toFixed(1));
+                for (let j = 0; j < state.R; j++) {
+                    state.W[i][j] = parseFloat((Math.random() * 3 - 1.5).toFixed(1));
+                }
+            }
+            renderControls();
+            calculateAndRender();
+        }
+
+        function resetInputs() {
+            for (let j = 0; j < state.R; j++) state.p[j] = 0.0;
+            renderControls();
+            calculateAndRender();
+        }
+
+        function renderControls() {
+            // 1. Render Input Vector p controls
+            const pContainer = document.getElementById('input-vector-container');
+            pContainer.style.gridTemplateColumns = `repeat(${Math.min(state.R, 3)}, minmax(0, 1fr))`;
+            pContainer.innerHTML = '';
+
+            state.p.forEach((val, j) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'bg-white p-2 border-2 border-black flex flex-col justify-between';
+                wrapper.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold font-mono">p<sub>${j+1}</sub></span>
+                        <input type="number" step="0.1" value="${val}" onchange="updateInputValue(${j}, this.value)" 
+                            class="w-14 bg-white border border-black text-right text-xs px-1 font-mono text-black focus:bg-black focus:text-white focus:outline-none">
+                    </div>
+                    <input type="range" min="-3" max="3" step="0.1" value="${val}" oninput="updateInputValue(${j}, this.value)" 
+                        class="w-full accent-black h-1 cursor-pointer">
+                `;
+                pContainer.appendChild(wrapper);
+            });
+
+            // 2. Render Weight Matrix W table controls
+            const wContainer = document.getElementById('weight-matrix-container');
+            let wTableHTML = `<table class="w-full text-center border-collapse"><thead><tr><th class="text-[10px] text-black p-1">S \\ R</th>`;
+            for (let j = 0; j < state.R; j++) {
+                wTableHTML += `<th class="text-[10px] text-black p-1 font-mono font-bold">p<sub>${j+1}</sub></th>`;
+            }
+            wTableHTML += `</tr></thead><tbody>`;
+
+            for (let i = 0; i < state.S; i++) {
+                wTableHTML += `<tr><td class="text-[10px] text-black p-1 font-mono font-bold">Neuron ${i+1}</td>`;
+                for (let j = 0; j < state.R; j++) {
+                    const wVal = state.W[i][j];
+                    wTableHTML += `
+                        <td class="p-1">
+                            <input type="number" step="0.1" value="${wVal}" 
+                                onchange="updateWeightValue(${i}, ${j}, this.value)"
+                                onmouseenter="highlightConnection(${i}, ${j})"
+                                onmouseleave="clearHighlight()"
+                                class="w-12 bg-white border border-black text-center text-xs px-0.5 font-mono text-black focus:bg-black focus:text-white focus:outline-none">
+                        </td>
+                    `;
+                }
+                wTableHTML += `</tr>`;
+            }
+            wTableHTML += `</tbody></table>`;
+            wContainer.innerHTML = wTableHTML;
+
+            // 3. Render Biases & Transfer Function Selection
+            const bContainer = document.getElementById('bias-tf-container');
+            bContainer.innerHTML = '';
+
+            for (let i = 0; i < state.S; i++) {
+                const row = document.createElement('div');
+                row.className = 'bg-white p-2 border-2 border-black flex flex-wrap items-center justify-between gap-2';
+                
+                let tfOptionsHTML = '';
+                Object.keys(TRANSFER_FUNCTIONS).forEach(tfKey => {
+                    tfOptionsHTML += `<option value="${tfKey}" ${state.tf[i] === tfKey ? 'selected' : ''}>${TRANSFER_FUNCTIONS[tfKey].name}</option>`;
+                });
+
+                row.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-bold font-mono">Neuron ${i+1}</span>
+                        <span class="text-[11px] text-black font-bold">b<sub>${i+1}</sub>:</span>
+                        <input type="number" step="0.1" value="${state.b[i]}" onchange="updateBiasValue(${i}, this.value)"
+                            class="w-12 bg-white border border-black text-right text-xs px-1 text-black font-mono focus:bg-black focus:text-white focus:outline-none">
+                    </div>
+                    <div class="flex items-center space-x-1.5">
+                        <span class="text-[11px] text-black font-serif italic font-bold">f:</span>
+                        <select onchange="updateTFValue(${i}, this.value)" class="bg-white border border-black text-xs px-1.5 py-1 text-black focus:outline-none focus:bg-black focus:text-white font-mono">
+                            ${tfOptionsHTML}
+                        </select>
+                    </div>
+                `;
+                bContainer.appendChild(row);
+            }
+        }
+
+        function updateInputValue(j, val) {
+            state.p[j] = parseFloat(val) || 0;
+            renderControls();
+            calculateAndRender();
+        }
+
+        function updateWeightValue(i, j, val) {
+            state.W[i][j] = parseFloat(val) || 0;
+            calculateAndRender();
+        }
+
+        function updateBiasValue(i, val) {
+            state.b[i] = parseFloat(val) || 0;
+            calculateAndRender();
+        }
+
+        function updateTFValue(i, val) {
+            state.tf[i] = val;
+            calculateAndRender();
+        }
+
+        function highlightConnection(neuronIdx, inputIdx) {
+            state.hoverNeuron = neuronIdx;
+            state.hoverInput = inputIdx;
+            renderDiagram();
+        }
+
+        function clearHighlight() {
+            state.hoverNeuron = -1;
+            state.hoverInput = -1;
+            renderDiagram();
+        }
+
+        function calculateAndRender() {
+            const n = [];
+            const a = [];
+
+            for (let i = 0; i < state.S; i++) {
+                let dotProduct = 0;
+                for (let j = 0; j < state.R; j++) {
+                    dotProduct += state.W[i][j] * state.p[j];
+                }
+                const netIn = dotProduct + state.b[i];
+                n.push(parseFloat(netIn.toFixed(4)));
+
+                const tfKey = state.tf[i] || 'logsig';
+                const outputVal = TRANSFER_FUNCTIONS[tfKey].fn(netIn);
+                a.push(parseFloat(outputVal.toFixed(4)));
+            }
+
+            renderMathKaTeX(n, a);
+            renderDiagram();
+            renderFig28();
+            drawTFPlot(n, a);
+            renderPageMath();
+        }
+
+        function renderMathKaTeX(nVec, aVec) {
+            // Build Matrix W LaTeX
+            let wRows = [];
+            for (let i = 0; i < state.S; i++) {
+                wRows.push(state.W[i].map(v => v.toFixed(1)).join(' & '));
+            }
+            let wMatrixLatex = '\\begin{bmatrix} ' + wRows.join(' \\\\ ') + ' \\end{bmatrix}';
+
+            let pVectorLatex = '\\begin{bmatrix} ' + state.p.map(v => v.toFixed(1)).join(' \\\\ ') + ' \\end{bmatrix}';
+            let bVectorLatex = '\\begin{bmatrix} ' + state.b.map(v => v.toFixed(1)).join(' \\\\ ') + ' \\end{bmatrix}';
+            let nVectorLatex = '\\begin{bmatrix} ' + nVec.map(v => v.toFixed(2)).join(' \\\\ ') + ' \\end{bmatrix}';
+            let aVectorLatex = '\\begin{bmatrix} ' + aVec.map(v => v.toFixed(2)).join(' \\\\ ') + ' \\end{bmatrix}';
+
+            const netInputEq = `\\mathbf{n} = ${wMatrixLatex} ${pVectorLatex} + ${bVectorLatex} = ${nVectorLatex}`;
+            const outputEq = `\\mathbf{a} = \\mathbf{f}(\\mathbf{n}) = ${aVectorLatex}`;
+
+            const netInputElem = document.getElementById('math-net-input');
+            const outputElem = document.getElementById('math-output-vector');
+
+            netInputElem.innerHTML = '';
+            outputElem.innerHTML = '';
+
+            try {
+                katex.render(netInputEq, netInputElem, { displayMode: true, throwOnError: false });
+                katex.render(outputEq, outputElem, { displayMode: true, throwOnError: false });
+            } catch(e) {
+                console.error("KaTeX Matrix Render Error:", e);
+            }
+
+            // Individual Scalar Neuron Breakdown Subcards
+            const detailsContainer = document.getElementById('math-neuron-details');
+            detailsContainer.innerHTML = '';
+
+            for (let i = 0; i < state.S; i++) {
+                let sumTerms = [];
+                for (let j = 0; j < state.R; j++) {
+                    sumTerms.push(`(${state.W[i][j].toFixed(1)} \\cdot ${state.p[j].toFixed(1)})`);
+                }
+                const sumExpr = sumTerms.join(' + ');
+                const tfName = state.tf[i] || 'logsig';
+                
+                // Construct clean LaTeX for subcard
+                const neuronMath = `n_{${i+1}} = ${sumExpr} + ${state.b[i].toFixed(1)} = ${nVec[i].toFixed(2)} \\implies a_{${i+1}} = f_{${tfName}}(${nVec[i].toFixed(2)}) = ${aVec[i].toFixed(2)}`;
+
+                const card = document.createElement('div');
+                card.className = `p-2 border-2 transition ${state.hoverNeuron === i ? 'bg-black text-white border-black' : 'bg-white text-black border-black'}`;
+                
+                const mathSpan = document.createElement('div');
+                mathSpan.className = "overflow-x-auto py-1";
+                card.appendChild(mathSpan);
+                detailsContainer.appendChild(card);
+
+                try {
+                    katex.render(neuronMath, mathSpan, { displayMode: false, throwOnError: false });
+                } catch(e) {
+                    console.error("KaTeX Subcard Error:", e);
+                    mathSpan.innerText = `Neuron ${i+1}: n = ${nVec[i].toFixed(2)}, a = ${aVec[i].toFixed(2)}`;
+                }
+            }
+        }
+
+        function renderDiagram() {
+            const svg = document.getElementById('svg-fig27');
+            if (!svg) return;
+            svg.innerHTML = '';
+
+            const R = state.R;
+            const S = state.S;
+
+            // Dynamically scale canvas height based on max(R, S) to prevent label clipping
+            const dynamicHeight = Math.max(460, Math.max(R, S) * 95 + 80);
+            svg.setAttribute("viewBox", `0 0 780 ${dynamicHeight}`);
+
+            const inputX = 110;
+            const summerX = 380;
+            const tfX = 560;
+            const outputX = 720;
+
+            const inputYStep = (dynamicHeight - 100) / (R + 1);
+            const inputYPos = Array.from({length: R}, (_, j) => 50 + (j + 1) * inputYStep);
+
+            const neuronYStep = (dynamicHeight - 100) / (S + 1);
+            const neuronYPos = Array.from({length: S}, (_, i) => 50 + (i + 1) * neuronYStep);
+
+            const nVec = [];
+            const aVec = [];
+            for (let i = 0; i < S; i++) {
+                let dotProduct = 0;
+                for (let j = 0; j < R; j++) dotProduct += state.W[i][j] * state.p[j];
+                const netIn = dotProduct + state.b[i];
+                nVec.push(netIn);
+                const tfKey = state.tf[i] || 'logsig';
+                aVec.push(TRANSFER_FUNCTIONS[tfKey].fn(netIn));
+            }
+
+            drawTextbookBrackets(svg, dynamicHeight);
+
+            // 1. Draw Connection Weight Lines (w_i,j)
+            for (let i = 0; i < S; i++) {
+                const sY = neuronYPos[i];
+                for (let j = 0; j < R; j++) {
+                    const pY = inputYPos[j];
+                    const weightVal = state.W[i][j];
+
+                    const isHovered = (state.hoverNeuron === i && state.hoverInput === j) ||
+                                      (state.hoverNeuron === i && state.hoverInput === -1) ||
+                                      (state.hoverNeuron === -1 && state.hoverInput === j);
+
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", inputX);
+                    line.setAttribute("y1", pY);
+                    line.setAttribute("x2", summerX - 22);
+                    line.setAttribute("y2", sY);
+
+                    line.setAttribute("stroke", "#000000");
+                    line.setAttribute("stroke-width", isHovered ? "3.0" : "1.5");
+                    line.setAttribute("opacity", isHovered ? "1.0" : (state.hoverNeuron !== -1 || state.hoverInput !== -1 ? "0.15" : "0.85"));
+                    line.setAttribute("class", "weight-line");
+
+                    const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+                    title.textContent = `w_${i+1},${j+1} = ${weightVal.toFixed(2)}`;
+                    line.appendChild(title);
+
+                    svg.appendChild(line);
+                }
+            }
+
+            // 2. Draw Input Nodes p_j with values
+            for (let j = 0; j < R; j++) {
+                const pY = inputYPos[j];
+
+                // Node Circle
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", inputX);
+                circle.setAttribute("cy", pY);
+                circle.setAttribute("r", "7");
+                circle.setAttribute("fill", "#000000");
+                circle.setAttribute("stroke", "#000000");
+                circle.setAttribute("stroke-width", "2");
+                circle.setAttribute("class", "cursor-pointer");
+                circle.addEventListener('mouseenter', () => highlightConnection(-1, j));
+                circle.addEventListener('mouseleave', clearHighlight);
+                svg.appendChild(circle);
+
+                // Label p_j = value
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", inputX - 16);
+                text.setAttribute("y", pY + 4);
+                text.setAttribute("fill", "#000000");
+                text.setAttribute("font-size", "14");
+                text.setAttribute("font-family", "Lora, serif");
+                text.setAttribute("font-weight", "bold");
+                text.setAttribute("text-anchor", "end");
+                text.textContent = `p${j+1} = ${state.p[j].toFixed(1)}`;
+                svg.appendChild(text);
+            }
+
+            // 3. Draw Summer Boxes \Sigma, Biases b_i, Net Inputs n_i, Transfer Functions f, Outputs a_i
+            for (let i = 0; i < S; i++) {
+                const sY = neuronYPos[i];
+
+                // Summer Box \Sigma
+                const summerBox = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                summerBox.setAttribute("x", summerX - 22);
+                summerBox.setAttribute("y", sY - 22);
+                summerBox.setAttribute("width", "44");
+                summerBox.setAttribute("height", "44");
+                summerBox.setAttribute("fill", "#ffffff");
+                summerBox.setAttribute("stroke", "#000000");
+                summerBox.setAttribute("stroke-width", "2");
+                svg.appendChild(summerBox);
+
+                const sumSymbol = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                sumSymbol.setAttribute("x", summerX);
+                sumSymbol.setAttribute("y", sY + 8);
+                sumSymbol.setAttribute("fill", "#000000");
+                sumSymbol.setAttribute("font-size", "26");
+                sumSymbol.setAttribute("text-anchor", "middle");
+                sumSymbol.setAttribute("font-family", "serif");
+                sumSymbol.setAttribute("font-weight", "bold");
+                sumSymbol.textContent = "Σ";
+                svg.appendChild(sumSymbol);
+
+                // Bias Input Line and Dot '1'
+                const biasLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                biasLine.setAttribute("x1", summerX);
+                biasLine.setAttribute("y1", sY + 22);
+                biasLine.setAttribute("x2", summerX);
+                biasLine.setAttribute("y2", sY + 42);
+                biasLine.setAttribute("stroke", "#000000");
+                biasLine.setAttribute("stroke-width", "2");
+                svg.appendChild(biasLine);
+
+                const biasNode = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                biasNode.setAttribute("cx", summerX);
+                biasNode.setAttribute("cy", sY + 42);
+                biasNode.setAttribute("r", "4");
+                biasNode.setAttribute("fill", "#000000");
+                svg.appendChild(biasNode);
+
+                const biasOne = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                biasOne.setAttribute("x", summerX);
+                biasOne.setAttribute("y", sY + 55);
+                biasOne.setAttribute("fill", "#000000");
+                biasOne.setAttribute("font-size", "11");
+                biasOne.setAttribute("font-weight", "bold");
+                biasOne.setAttribute("text-anchor", "middle");
+                biasOne.textContent = "1";
+                svg.appendChild(biasOne);
+
+                // Bias Value Label b_i = value
+                const biasText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                biasText.setAttribute("x", summerX + 10);
+                biasText.setAttribute("y", sY + 36);
+                biasText.setAttribute("fill", "#000000");
+                biasText.setAttribute("font-size", "12");
+                biasText.setAttribute("font-family", "Fira Code, monospace");
+                biasText.setAttribute("font-weight", "bold");
+                biasText.textContent = `b${i+1}=${state.b[i].toFixed(1)}`;
+                svg.appendChild(biasText);
+
+                // Arrow to Transfer Function Box
+                const lineN = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                lineN.setAttribute("x1", summerX + 22);
+                lineN.setAttribute("y1", sY);
+                lineN.setAttribute("x2", tfX - 22);
+                lineN.setAttribute("y2", sY);
+                lineN.setAttribute("stroke", "#000000");
+                lineN.setAttribute("stroke-width", "2");
+                svg.appendChild(lineN);
+
+                // Net Input Text n_i = value
+                const textN = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                textN.setAttribute("x", (summerX + tfX) / 2);
+                textN.setAttribute("y", sY - 8);
+                textN.setAttribute("fill", "#000000");
+                textN.setAttribute("font-size", "12");
+                textN.setAttribute("font-family", "Fira Code, monospace");
+                textN.setAttribute("font-weight", "bold");
+                textN.setAttribute("text-anchor", "middle");
+                textN.textContent = `n${i+1}=${nVec[i].toFixed(2)}`;
+                svg.appendChild(textN);
+
+                // Arrow head into f box
+                const arrowN = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                arrowN.setAttribute("points", `${tfX-22},${sY} ${tfX-29},${sY-5} ${tfX-29},${sY+5}`);
+                arrowN.setAttribute("fill", "#000000");
+                svg.appendChild(arrowN);
+
+                // Transfer Function Box f
+                const tfBox = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                tfBox.setAttribute("x", tfX - 22);
+                tfBox.setAttribute("y", sY - 22);
+                tfBox.setAttribute("width", "44");
+                tfBox.setAttribute("height", "44");
+                tfBox.setAttribute("fill", "#ffffff");
+                tfBox.setAttribute("stroke", "#000000");
+                tfBox.setAttribute("stroke-width", "2");
+                svg.appendChild(tfBox);
+
+                const tfSymbol = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                tfSymbol.setAttribute("x", tfX);
+                tfSymbol.setAttribute("y", sY + 8);
+                tfSymbol.setAttribute("fill", "#000000");
+                tfSymbol.setAttribute("font-size", "22");
+                tfSymbol.setAttribute("text-anchor", "middle");
+                tfSymbol.setAttribute("font-style", "italic");
+                tfSymbol.setAttribute("font-family", "Lora, serif");
+                tfSymbol.setAttribute("font-weight", "bold");
+                tfSymbol.textContent = "f";
+                svg.appendChild(tfSymbol);
+
+                // Output Line and Arrow
+                const lineA = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                lineA.setAttribute("x1", tfX + 22);
+                lineA.setAttribute("y1", sY);
+                lineA.setAttribute("x2", outputX);
+                lineA.setAttribute("y2", sY);
+                lineA.setAttribute("stroke", "#000000");
+                lineA.setAttribute("stroke-width", "2");
+                svg.appendChild(lineA);
+
+                const arrowA = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                arrowA.setAttribute("points", `${outputX},${sY} ${outputX-10},${sY-5} ${outputX-10},${sY+5}`);
+                arrowA.setAttribute("fill", "#000000");
+                svg.appendChild(arrowA);
+
+                // Output Value Text a_i = value
+                const textA = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                textA.setAttribute("x", outputX + 10);
+                textA.setAttribute("y", sY + 5);
+                textA.setAttribute("fill", "#000000");
+                textA.setAttribute("font-size", "13");
+                textA.setAttribute("font-family", "Fira Code, monospace");
+                textA.setAttribute("font-weight", "bold");
+                textA.textContent = `a${i+1}=${aVec[i].toFixed(2)}`;
+                svg.appendChild(textA);
+            }
+        }
+
+        function drawTextbookBrackets(svg, totalHeight) {
+            // "Inputs" top bracket
+            const t1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            t1.setAttribute("x", "110");
+            t1.setAttribute("y", "25");
+            t1.setAttribute("fill", "#000000");
+            t1.setAttribute("font-size", "16");
+            t1.setAttribute("font-family", "Lora, serif");
+            t1.setAttribute("font-weight", "bold");
+            t1.setAttribute("text-anchor", "middle");
+            t1.textContent = "Inputs";
+            svg.appendChild(t1);
+
+            // "Layer of S Neurons" top bracket
+            const t2 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            t2.setAttribute("x", "520");
+            t2.setAttribute("y", "25");
+            t2.setAttribute("fill", "#000000");
+            t2.setAttribute("font-size", "16");
+            t2.setAttribute("font-family", "Lora, serif");
+            t2.setAttribute("font-weight", "bold");
+            t2.setAttribute("text-anchor", "middle");
+            t2.textContent = `Layer of ${state.S} Neurons`;
+            svg.appendChild(t2);
+        }
+
+        function renderFig28() {
+            const svg = document.getElementById('svg-fig28');
+            if (!svg) return;
+            svg.innerHTML = '';
+
+            const R = state.R;
+            const S = state.S;
+
+            const badge = document.getElementById('matrix-dims-badge');
+            if (badge) badge.innerText = `W: ${S}×${R} Matrix`;
+
+            // Drawing textbook Figure 2.8 in exact visual style of Image 3
+            // Top brackets:
+            // "Input" over p (x=115 to 175)
+            // "Layer of S Neurons" over W, b, +, n, f, a (x=200 to 520)
+
+            // Top bracket 1: Input
+            const pathTop1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            pathTop1.setAttribute("d", "M 115 50 C 115 40 120 35 145 35 C 170 35 175 40 175 50");
+            pathTop1.setAttribute("fill", "none");
+            pathTop1.setAttribute("stroke", "#000000");
+            pathTop1.setAttribute("stroke-width", "2");
+            svg.appendChild(pathTop1);
+
+            const txtTop1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            txtTop1.setAttribute("x", "145");
+            txtTop1.setAttribute("y", "25");
+            txtTop1.setAttribute("font-family", "Lora, Georgia, serif");
+            txtTop1.setAttribute("font-size", "16");
+            txtTop1.setAttribute("text-anchor", "middle");
+            txtTop1.textContent = "Input";
+            svg.appendChild(txtTop1);
+
+            // Top bracket 2: Layer of S Neurons
+            const pathTop2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            pathTop2.setAttribute("d", "M 200 50 C 200 35 220 30 360 30 C 500 30 520 35 520 50");
+            pathTop2.setAttribute("fill", "none");
+            pathTop2.setAttribute("stroke", "#000000");
+            pathTop2.setAttribute("stroke-width", "2");
+            svg.appendChild(pathTop2);
+
+            const txtTop2 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            txtTop2.setAttribute("x", "360");
+            txtTop2.setAttribute("y", "22");
+            txtTop2.setAttribute("font-family", "Lora, Georgia, serif");
+            txtTop2.setAttribute("font-size", "16");
+            txtTop2.setAttribute("text-anchor", "middle");
+            txtTop2.textContent = `Layer of ${S} Neurons`;
+            svg.appendChild(txtTop2);
+
+            // Solid black input bar p
+            const barP = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            barP.setAttribute("x", "135");
+            barP.setAttribute("y", "90");
+            barP.setAttribute("width", "22");
+            barP.setAttribute("height", "110");
+            barP.setAttribute("fill", "#000000");
+            svg.appendChild(barP);
+
+            // Arrow 1: from p to W
+            const linePtoW = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            linePtoW.setAttribute("x1", "157");
+            linePtoW.setAttribute("y1", "110");
+            linePtoW.setAttribute("x2", "230");
+            linePtoW.setAttribute("y2", "110");
+            linePtoW.setAttribute("stroke", "#000000");
+            linePtoW.setAttribute("stroke-width", "2");
+            svg.appendChild(linePtoW);
+
+            const arrPtoW = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+            arrPtoW.setAttribute("points", "230,110 220,105 220,115");
+            arrPtoW.setAttribute("fill", "#000000");
+            svg.appendChild(arrPtoW);
+
+            // Label 'p' and 'R x 1'
+            const labelP = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            labelP.setAttribute("x", "190");
+            labelP.setAttribute("y", "98");
+            labelP.setAttribute("font-family", "Lora, Georgia, serif");
+            labelP.setAttribute("font-size", "16");
+            labelP.setAttribute("font-weight", "bold");
+            labelP.setAttribute("text-anchor", "middle");
+            labelP.textContent = "p";
+            svg.appendChild(labelP);
+
+            const labelR1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            labelR1.setAttribute("x", "190");
+            labelR1.setAttribute("y", "124");
+            labelR1.setAttribute("font-family", "Lora, Georgia, serif");
+            labelR1.setAttribute("font-style", "italic");
+            labelR1.setAttribute("font-size", "12");
+            labelR1.setAttribute("text-anchor", "middle");
+            labelR1.textContent = `${R}×1`;
+            svg.appendChild(labelR1);
+
+            // Box W
+            const boxW = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            boxW.setAttribute("x", "230");
+            boxW.setAttribute("y", "90");
+            boxW.setAttribute("width", "46");
+            boxW.setAttribute("height", "42");
+            boxW.setAttribute("fill", "#ffffff");
+            boxW.setAttribute("stroke", "#000000");
+            boxW.setAttribute("stroke-width", "2");
+            svg.appendChild(boxW);
+
+            const txtW = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            txtW.setAttribute("x", "253");
+            txtW.setAttribute("y", "118");
+            txtW.setAttribute("font-family", "Lora, Georgia, serif");
+            txtW.setAttribute("font-size", "22");
+            txtW.setAttribute("font-weight", "bold");
+            txtW.setAttribute("text-anchor", "middle");
+            txtW.textContent = "W";
+            svg.appendChild(txtW);
+
+            const labelSR1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            labelSR1.setAttribute("x", "253");
+            labelSR1.setAttribute("y", "148");
+            labelSR1.setAttribute("font-family", "Lora, Georgia, serif");
+            labelSR1.setAttribute("font-style", "italic");
+            labelSR1.setAttribute("font-size", "12");
+            labelSR1.setAttribute("text-anchor", "middle");
+            labelSR1.textContent = `${S}×${R}`;
+            svg.appendChild(labelSR1);
+
+            // Bias line from 1 to b
+            const txtOne = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            txtOne.setAttribute("x", "180");
+            txtOne.setAttribute("y", "184");
+            txtOne.setAttribute("font-family", "Lora, Georgia, serif");
+            txtOne.setAttribute("font-size", "15");
+            txtOne.setAttribute("text-anchor", "middle");
+            txtOne.textContent = "1";
+            svg.appendChild(txtOne);
+
+            const line1toB = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line1toB.setAttribute("x1", "190");
+            line1toB.setAttribute("y1", "180");
+            line1toB.setAttribute("x2", "230");
+            line1toB.setAttribute("y2", "180");
+            line1toB.setAttribute("stroke", "#000000");
+            line1toB.setAttribute("stroke-width", "2");
+            svg.appendChild(line1toB);
+
+            const arr1toB = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+            arr1toB.setAttribute("points", "230,180 220,175 220,185");
+            arr1toB.setAttribute("fill", "#000000");
+            svg.appendChild(arr1toB);
+
+            // Box b
+            const boxB = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            boxB.setAttribute("x", "230");
+            boxB.setAttribute("y", "160");
+            boxB.setAttribute("width", "46");
+            boxB.setAttribute("height", "40");
+            boxB.setAttribute("fill", "#ffffff");
+            boxB.setAttribute("stroke", "#000000");
+            boxB.setAttribute("stroke-width", "2");
+            svg.appendChild(boxB);
+
+            const txtB = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            txtB.setAttribute("x", "253");
+            txtB.setAttribute("y", "186");
+            txtB.setAttribute("font-family", "Lora, Georgia, serif");
+            txtB.setAttribute("font-size", "20");
+            txtB.setAttribute("font-weight", "bold");
+            txtB.setAttribute("text-anchor", "middle");
+            txtB.textContent = "b";
+            svg.appendChild(txtB);
+
+            const labelS1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            labelS1.setAttribute("x", "253");
+            labelS1.setAttribute("y", "214");
+            labelS1.setAttribute("font-family", "Lora, Georgia, serif");
+            labelS1.setAttribute("font-style", "italic");
+            labelS1.setAttribute("font-size", "12");
+            labelS1.setAttribute("text-anchor", "middle");
+            labelS1.textContent = `${S}×1`;
+            svg.appendChild(labelS1);
+
+            // Curved/angled arrows into + summer
+            const lineWtoPlus = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            lineWtoPlus.setAttribute("d", "M 276 110 L 305 110 L 325 133");
+            lineWtoPlus.setAttribute("fill", "none");
+            lineWtoPlus.setAttribute("stroke", "#000000");
+            lineWtoPlus.setAttribute("stroke-width", "2");
+            svg.appendChild(lineWtoPlus);
+
+            const arrWtoPlus = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+            arrWtoPlus.setAttribute("points", "330,138 318,131 325,124");
+            arrWtoPlus.setAttribute("fill", "#000000");
+            svg.appendChild(arrWtoPlus);
+
+            const lineBtoPlus = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            lineBtoPlus.setAttribute("d", "M 276 180 L 305 180 L 325 157");
+            lineBtoPlus.setAttribute("fill", "none");
+            lineBtoPlus.setAttribute("stroke", "#000000");
+            lineBtoPlus.setAttribute("stroke-width", "2");
+            svg.appendChild(lineBtoPlus);
+
+            const arrBtoPlus = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+            arrBtoPlus.setAttribute("points", "330,152 325,166 318,159");
+            arrBtoPlus.setAttribute("fill", "#000000");
+            svg.appendChild(arrBtoPlus);
+
+            // Summer Circle (+)
+            const plusCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            plusCircle.setAttribute("cx", "350");
+            plusCircle.setAttribute("cy", "145");
+            plusCircle.setAttribute("r", "22");
+            plusCircle.setAttribute("fill", "#ffffff");
+            plusCircle.setAttribute("stroke", "#000000");
+            plusCircle.setAttribute("stroke-width", "2");
+            svg.appendChild(plusCircle);
+
+            const plusTxt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            plusTxt.setAttribute("x", "350");
+            plusTxt.setAttribute("y", "153");
+            plusTxt.setAttribute("font-family", "serif");
+            plusTxt.setAttribute("font-size", "26");
+            plusTxt.setAttribute("text-anchor", "middle");
+            plusTxt.textContent = "+";
+            svg.appendChild(plusTxt);
+
+            // Line from + to f (labeled n, Sx1)
+            const linePlustoF = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            linePlustoF.setAttribute("x1", "372");
+            linePlustoF.setAttribute("y1", "145");
+            linePlustoF.setAttribute("x2", "440");
+            linePlustoF.setAttribute("y2", "145");
+            linePlustoF.setAttribute("stroke", "#000000");
+            linePlustoF.setAttribute("stroke-width", "2");
+            svg.appendChild(linePlustoF);
+
+            const arrPlustoF = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+            arrPlustoF.setAttribute("points", "440,145 430,140 430,150");
+            arrPlustoF.setAttribute("fill", "#000000");
+            svg.appendChild(arrPlustoF);
+
+            const labelN = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            labelN.setAttribute("x", "406");
+            labelN.setAttribute("y", "133");
+            labelN.setAttribute("font-family", "Lora, Georgia, serif");
+            labelN.setAttribute("font-size", "16");
+            labelN.setAttribute("font-weight", "bold");
+            labelN.setAttribute("text-anchor", "middle");
+            labelN.textContent = "n";
+            svg.appendChild(labelN);
+
+            const labelSx1_n = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            labelSx1_n.setAttribute("x", "406");
+            labelSx1_n.setAttribute("y", "160");
+            labelSx1_n.setAttribute("font-family", "Lora, Georgia, serif");
+            labelSx1_n.setAttribute("font-style", "italic");
+            labelSx1_n.setAttribute("font-size", "12");
+            labelSx1_n.setAttribute("text-anchor", "middle");
+            labelSx1_n.textContent = `${S}×1`;
+            svg.appendChild(labelSx1_n);
+
+            // Box f
+            const boxF = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            boxF.setAttribute("x", "440");
+            boxF.setAttribute("y", "90");
+            boxF.setAttribute("width", "48");
+            boxF.setAttribute("height", "110");
+            boxF.setAttribute("fill", "#ffffff");
+            boxF.setAttribute("stroke", "#000000");
+            boxF.setAttribute("stroke-width", "2");
+            svg.appendChild(boxF);
+
+            const txtF = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            txtF.setAttribute("x", "464");
+            txtF.setAttribute("y", "154");
+            txtF.setAttribute("font-family", "Lora, Georgia, serif");
+            txtF.setAttribute("font-size", "28");
+            txtF.setAttribute("font-style", "italic");
+            txtF.setAttribute("font-weight", "bold");
+            txtF.setAttribute("text-anchor", "middle");
+            txtF.textContent = "f";
+            svg.appendChild(txtF);
+
+            // Arrow out of f to a
+            const lineFtoA = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            lineFtoA.setAttribute("x1", "488");
+            lineFtoA.setAttribute("y1", "110");
+            lineFtoA.setAttribute("x2", "560");
+            lineFtoA.setAttribute("y2", "110");
+            lineFtoA.setAttribute("stroke", "#000000");
+            lineFtoA.setAttribute("stroke-width", "2");
+            svg.appendChild(lineFtoA);
+
+            const arrFtoA = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+            arrFtoA.setAttribute("points", "560,110 550,105 550,115");
+            arrFtoA.setAttribute("fill", "#000000");
+            svg.appendChild(arrFtoA);
+
+            const labelA = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            labelA.setAttribute("x", "515");
+            labelA.setAttribute("y", "98");
+            labelA.setAttribute("font-family", "Lora, Georgia, serif");
+            labelA.setAttribute("font-size", "16");
+            labelA.setAttribute("font-weight", "bold");
+            labelA.setAttribute("text-anchor", "middle");
+            labelA.textContent = "a";
+            svg.appendChild(labelA);
+
+            const labelSx1_a = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            labelSx1_a.setAttribute("x", "515");
+            labelSx1_a.setAttribute("y", "124");
+            labelSx1_a.setAttribute("font-family", "Lora, Georgia, serif");
+            labelSx1_a.setAttribute("font-style", "italic");
+            labelSx1_a.setAttribute("font-size", "12");
+            labelSx1_a.setAttribute("text-anchor", "middle");
+            labelSx1_a.textContent = `${S}×1`;
+            svg.appendChild(labelSx1_a);
+
+            // Bottom brackets: R under p; S under rest
+            const pathBot1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            pathBot1.setAttribute("d", "M 115 220 C 115 235 120 240 145 240 C 170 240 175 235 175 220");
+            pathBot1.setAttribute("fill", "none");
+            pathBot1.setAttribute("stroke", "#000000");
+            pathBot1.setAttribute("stroke-width", "2");
+            svg.appendChild(pathBot1);
+
+            const txtBot1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            txtBot1.setAttribute("x", "145");
+            txtBot1.setAttribute("y", "260");
+            txtBot1.setAttribute("font-family", "Lora, Georgia, serif");
+            txtBot1.setAttribute("font-style", "italic");
+            txtBot1.setAttribute("font-size", "18");
+            txtBot1.setAttribute("text-anchor", "middle");
+            txtBot1.textContent = `${R}`;
+            svg.appendChild(txtBot1);
+
+            const pathBot2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            pathBot2.setAttribute("d", "M 200 220 C 200 235 220 240 360 240 C 500 240 520 235 520 220");
+            pathBot2.setAttribute("fill", "none");
+            pathBot2.setAttribute("stroke", "#000000");
+            pathBot2.setAttribute("stroke-width", "2");
+            svg.appendChild(pathBot2);
+
+            const txtBot2 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            txtBot2.setAttribute("x", "360");
+            txtBot2.setAttribute("y", "260");
+            txtBot2.setAttribute("font-family", "Lora, Georgia, serif");
+            txtBot2.setAttribute("font-style", "italic");
+            txtBot2.setAttribute("font-size", "18");
+            txtBot2.setAttribute("text-anchor", "middle");
+            txtBot2.textContent = `${S}`;
+            svg.appendChild(txtBot2);
+
+            // Equation at bottom
+            const txtEq = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            txtEq.setAttribute("x", "330");
+            txtEq.setAttribute("y", "305");
+            txtEq.setAttribute("font-family", "Lora, Georgia, serif");
+            txtEq.setAttribute("font-size", "18");
+            txtEq.setAttribute("font-weight", "bold");
+            txtEq.setAttribute("text-anchor", "middle");
+            txtEq.textContent = "a = f(Wp + b)";
+            svg.appendChild(txtEq);
+        }
+
+        function drawTFPlot(nVec = [], aVec = []) {
+            const canvas = document.getElementById('tf-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio || 600;
+            canvas.height = rect.height * window.devicePixelRatio || 180;
+
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            const xMin = -5, xMax = 5;
+            const yMin = -1.5, yMax = 1.5;
+
+            const toX = x => ((x - xMin) / (xMax - xMin)) * w;
+            const toY = y => h - ((y - yMin) / (yMax - yMin)) * h;
+
+            // 1. Draw Grid Lines & Axes
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1;
+
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(0, toY(0));
+            ctx.lineTo(w, toY(0));
+            ctx.stroke();
+
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(toX(0), 0);
+            ctx.lineTo(toX(0), h);
+            ctx.stroke();
+
+            // 2. Draw Curves in distinct line patterns (solid, dashed, dotted) for strict monochrome
+            const lineStyles = [[], [8, 5], [3, 3], [12, 4, 2, 4]];
+
+            for (let i = 0; i < state.S; i++) {
+                const tfKey = state.tf[i] || 'logsig';
+                const fn = TRANSFER_FUNCTIONS[tfKey].fn;
+
+                ctx.beginPath();
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 2;
+                ctx.setLineDash(lineStyles[i % lineStyles.length]);
+
+                for (let px = 0; px <= w; px += 2) {
+                    const nx = xMin + (px / w) * (xMax - xMin);
+                    const ny = fn(nx);
+                    const py = toY(ny);
+
+                    if (px === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]); // Reset dash
+
+                // 3. Operating Point Dot
+                if (nVec.length > i) {
+                    const ni = nVec[i];
+                    const ai = aVec[i];
+
+                    const ptX = toX(ni);
+                    const ptY = toY(ai);
+
+                    ctx.beginPath();
+                    ctx.arc(ptX, ptY, 5, 0, 2 * Math.PI);
+                    ctx.fillStyle = '#000000';
+                    ctx.fill();
+
+                    ctx.fillStyle = '#000000';
+                    ctx.font = `bold ${10 * (window.devicePixelRatio || 1)}px Fira Code`;
+                    ctx.fillText(`N${i+1}(${ni.toFixed(1)}, ${ai.toFixed(1)})`, ptX + 7, ptY - 4);
+                }
+            }
+        }
+
+        function switchTab(tab) {
+            state.activeTab = tab;
+            const tab27 = document.getElementById('tab-fig27');
+            const tab28 = document.getElementById('tab-fig28');
+            const view27 = document.getElementById('view-fig27');
+            const view28 = document.getElementById('view-fig28');
+
+            if (tab === 'fig27') {
+                tab27.className = "flex-1 py-2.5 px-4 text-xs font-bold text-white bg-black border-r-2 border-black flex items-center justify-center space-x-2 transition";
+                tab28.className = "flex-1 py-2.5 px-4 text-xs font-bold text-black bg-white hover:bg-black hover:text-white flex items-center justify-center space-x-2 transition";
+                view27.classList.remove('hidden');
+                view28.classList.add('hidden');
+                renderDiagram();
+            } else {
+                tab28.className = "flex-1 py-2.5 px-4 text-xs font-bold text-white bg-black flex items-center justify-center space-x-2 transition";
+                tab27.className = "flex-1 py-2.5 px-4 text-xs font-bold text-black bg-white border-r-2 border-black hover:bg-black hover:text-white transition";
+                view28.classList.remove('hidden');
+                view27.classList.add('hidden');
+                renderFig28();
+            }
+            renderPageMath();
+        }
+    </script>
+</body>
+</html>
