@@ -19,7 +19,7 @@
             - [Multiple-Input Neuron](Ch2/theory_and_examples/neuron_model/multiple_input_neuron.ipynb)
         - Network Architectures
             - [A Layer of Neurons](Ch2/theory_and_examples/network_architectures/a_layer_of_neurons.ipynb)
-            - [Multiple Layers of Neurons](Ch2/theory_and_examples/network_architectures/multiple_layers_of_neurons.html)
+            - [Multiple Layers of Neurons](Ch2/theory_and_examples/network_architectures/multiple_layers_of_neurons.ipynb)
             - Recurrent Networks
     - Summary of Results
     - [Solved Problems](solved_problem/2/readme.md)
