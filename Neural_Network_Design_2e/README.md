@@ -13,6 +13,7 @@ I am building this **one chapter at a time, one concept at a time, completely on
 
 # Neural Network Design
 
+
 ![alt text](image.png)
 
 1. <details><summary>Introduction</summary>
@@ -524,6 +525,9 @@ I am building this **one chapter at a time, one concept at a time, completely on
 ---
 
 ![alt text](book_cover.png)
+
+[Book Author Respository - https://github.com/NNDesignDeepLearning/NNDesignDeepLearning](https://github.com/NNDesignDeepLearning/NNDesignDeepLearning)
+
 
 ---
 
