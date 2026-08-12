@@ -17,10 +17,10 @@
             - [Single-Input Neuron](Ch2/theory_and_examples/neuron_model/single_input_neuron.ipynb)
             - [Transfer Functions](Ch2/theory_and_examples/neuron_model/transfer_function.ipynb)
             - [Multiple-Input Neuron](Ch2/theory_and_examples/neuron_model/multiple_input_neuron.ipynb)
-        - Network Architectures
+        - [Network Architectures](Ch2/theory_and_examples/network_architectures/network_architecture.ipynb)
             - [A Layer of Neurons](Ch2/theory_and_examples/network_architectures/a_layer_of_neurons.ipynb)
             - [Multiple Layers of Neurons](Ch2/theory_and_examples/network_architectures/multiple_layers_of_neurons.ipynb)
-            - Recurrent Networks
+            - [Recurrent Networks](Ch2/theory_and_examples/network_architectures/recurrent_networks.ipynb)
     - Summary of Results
     - [Solved Problems](solved_problem/2/readme.md)
     - Epilogue
