@@ -1,5 +1,7 @@
 # Neural Network Design
 
+![alt text](image.png)
+
 1. <details><summary>Introduction</summary>
    
    - Objectives
