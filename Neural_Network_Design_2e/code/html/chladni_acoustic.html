@@ -1,0 +1,1586 @@
+<!--https://www.dynamicmath.xyz/chladni-patterns/ if just reference material. the link i used I not done that. below code i done using AI -->
+    
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chladni Plate & Acoustic Pattern Simulator (2D & 3D)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+
+    <!-- KaTeX CSS & JS for Math LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Three.js & OrbitControls for 3D Cymatics Simulation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#131e32',
+                            950: '#090d16',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(71, 85, 105, 1);
+        }
+        canvas {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-cyan-500 selection:text-slate-950">
+
+    <!-- Header Navigation -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                    <i class="fa-solid fa-cube text-xl text-slate-950 animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent leading-none">
+                        Chladni Acoustic Lab 2D / 3D
+                    </h1>
+                    <p class="text-xs text-slate-400 font-mono mt-0.5">3D Bouncing Grains & Surface Flexure Simulator</p>
+                </div>
+            </div>
+
+            <!-- View Switcher & Audio Controls -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <!-- 2D / 3D Mode Selector Toggle -->
+                <div class="bg-slate-950 p-1 rounded-xl border border-slate-800 flex items-center text-xs font-semibold">
+                    <button id="view2DBtn" class="px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-cyan-500 text-slate-950 shadow-md">
+                        <i class="fa-solid fa-border-all"></i>
+                        <span>2D View</span>
+                    </button>
+                    <button id="view3DBtn" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-cube"></i>
+                        <span>3D Interactive</span>
+                    </button>
+                </div>
+
+                <button id="audioToggleBtn" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-sm font-medium border border-slate-700">
+                    <i id="audioIcon" class="fa-solid fa-volume-xmark text-slate-400"></i>
+                    <span id="audioText" class="hidden sm:inline">Audio Off</span>
+                </button>
+
+                <button id="infoModalToggle" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition border border-slate-700" title="Physics & Math Explanation">
+                    <i class="fa-solid fa-circle-info"></i>
+                </button>
+
+                <button id="resetSandBtn" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium text-sm transition shadow-lg shadow-cyan-900/30">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span class="hidden sm:inline">Reset Grains</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Body Workspace -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Plate Viewport (2D Canvas or 3D WebGL Scene) (7 Cols) -->
+        <div class="lg:col-span-7 flex flex-col space-y-4">
+            <!-- Plate Canvas Container -->
+            <div class="relative bg-slate-900 rounded-2xl border border-slate-800 p-4 shadow-2xl flex flex-col items-center justify-center min-h-[460px] sm:min-h-[540px] overflow-hidden group">
+                
+                <!-- Background Grid -->
+                <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-40 pointer-events-none"></div>
+                
+                <!-- 2D Active Plate Canvas -->
+                <canvas id="chladniCanvas" class="z-10 cursor-crosshair rounded-xl shadow-inner max-w-full block"></canvas>
+
+                <!-- 3D Active WebGL Viewport Container -->
+                <div id="container3D" class="z-10 w-full h-[480px] rounded-xl overflow-hidden hidden relative">
+                    <canvas id="chladni3DCanvas" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+                    <div class="absolute bottom-3 right-3 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-800 text-[11px] text-slate-400 font-mono flex items-center gap-2 pointer-events-none">
+                        <i class="fa-solid fa-hand-pointer text-cyan-400"></i> Drag to Orbit | Scroll to Zoom
+                    </div>
+                </div>
+
+                <!-- Floating Overlay Info (Mode, Frequency, Shape) -->
+                <div class="absolute top-6 left-6 z-20 pointer-events-none bg-slate-950/85 backdrop-blur-md px-3.5 py-2.5 rounded-xl border border-slate-800 font-mono text-xs text-slate-300 flex flex-col gap-1 shadow-xl">
+                    <div class="flex items-center gap-2">
+                        <span id="statusIndicator" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span id="displayFrequency" class="font-bold text-emerald-400 text-sm">3,154 Hz</span>
+                    </div>
+                    <div>Mode $(n,m)$: <span id="displayMode" class="text-cyan-400 font-bold">(4, 1)</span></div>
+                    <div>Shape: <span id="displayShape" class="text-slate-200">Circular</span></div>
+                    <div>Engine: <span id="displayEngine" class="text-emerald-400 font-bold">2D Pixel Map</span></div>
+                    <div id="displayMantraContainer" class="hidden text-amber-300 font-bold border-t border-slate-800 pt-1 mt-0.5">Preset: <span id="displayMantra">LAM</span></div>
+                </div>
+
+                <!-- Resonance & Pattern Formation Probability Meter Overlay -->
+                <div class="absolute top-6 right-6 z-20 bg-slate-950/85 backdrop-blur-md p-3 rounded-xl border border-slate-800 font-mono text-xs text-slate-300 flex flex-col gap-1.5 shadow-xl w-48">
+                    <div class="flex justify-between items-center text-[11px] text-slate-400 font-sans font-semibold">
+                        <span>Pattern Probability</span>
+                        <span id="probPercentage" class="text-cyan-400 font-bold font-mono">98.5%</span>
+                    </div>
+                    <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="probBar" class="h-full bg-gradient-to-r from-amber-500 via-cyan-400 to-emerald-400 transition-all duration-300" style="width: 98.5%"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-slate-400 border-t border-slate-800/80 pt-1">
+                        <span>Resonant $f_{\text{res}}$:</span>
+                        <span id="targetResFreq" class="text-slate-200 font-bold">3,154 Hz</span>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-slate-400">
+                        <span>Material $Q$:</span>
+                        <span id="materialQVal" class="text-amber-300">1000</span>
+                    </div>
+                    <button id="autoTuneBtn" class="mt-1 w-full py-1 bg-cyan-950 hover:bg-cyan-900 border border-cyan-700/60 text-cyan-300 rounded text-[10px] font-sans font-medium transition flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i> Snap to Resonance
+                    </button>
+                </div>
+
+                <!-- Canvas Control Overlay Bar -->
+                <div class="absolute bottom-6 z-20 flex flex-wrap items-center justify-center gap-2 bg-slate-950/80 backdrop-blur-md p-1.5 rounded-xl border border-slate-800 shadow-xl">
+                    <button id="toggleNodalOverlay" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-eye"></i>
+                        <span>Theoretical Nodal Lines</span>
+                    </button>
+                    <button id="disturbSandBtn" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-wind text-amber-400"></i>
+                        <span>Shake Sand</span>
+                    </button>
+                    <button id="sweepToggleBtn" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1.5">
+                        <i id="sweepIcon" class="fa-solid fa-play text-cyan-400"></i>
+                        <span id="sweepText">Auto Sweep</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Oscilloscope / Wave Graphic -->
+            <div class="bg-slate-900/90 rounded-xl border border-slate-800 p-4 flex items-center justify-between gap-4">
+                <div class="flex flex-col">
+                    <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Resonant Wave Profile</span>
+                    <span class="text-xs text-slate-500">Cross-sectional vibrational displacement & node alignment</span>
+                </div>
+                <div class="w-48 sm:w-64 h-10 bg-slate-950 rounded-lg border border-slate-800 overflow-hidden relative">
+                    <canvas id="waveCanvas" class="w-full h-full"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Controls, Mode Sliders & Presets (5 Cols) -->
+        <div class="lg:col-span-5 flex flex-col space-y-4">
+
+            <!-- Bija Mantra Sacred Cymatics Card -->
+            <div class="bg-slate-900 rounded-2xl border border-amber-900/40 p-5 shadow-lg relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-om text-amber-400"></i> Bija Mantra Cymatics
+                    </h2>
+                    <span class="text-[11px] bg-amber-950/60 text-amber-300 font-mono px-2 py-0.5 rounded-full border border-amber-700/50">Harmonic Presets</span>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-2 text-xs">
+                    <button class="mantra-btn p-2 rounded-xl bg-slate-950 hover:bg-amber-950/40 border border-amber-900/50 text-left transition flex flex-col items-center justify-center text-center group"
+                            data-shape="circle" data-n="4" data-m="1" data-freq="396" data-mantra="LAM (Root / 4 Petals)">
+                        <span class="font-bold text-amber-400 text-sm group-hover:scale-110 transition-transform">LAM</span>
+                        <span class="text-[10px] text-slate-400 font-mono">396 Hz</span>
+                        <span class="text-[9px] text-amber-200/70">4 Petals ($n=4$)</span>
+                    </button>
+
+                    <button class="mantra-btn p-2 rounded-xl bg-slate-950 hover:bg-amber-950/40 border border-amber-900/50 text-left transition flex flex-col items-center justify-center text-center group"
+                            data-shape="circle" data-n="6" data-m="1" data-freq="417" data-mantra="VAM (Sacral / 6 Petals)">
+                        <span class="font-bold text-amber-400 text-sm group-hover:scale-110 transition-transform">VAM</span>
+                        <span class="text-[10px] text-slate-400 font-mono">417 Hz</span>
+                        <span class="text-[9px] text-amber-200/70">6 Petals ($n=6$)</span>
+                    </button>
+
+                    <button class="mantra-btn p-2 rounded-xl bg-slate-950 hover:bg-amber-950/40 border border-amber-900/50 text-left transition flex flex-col items-center justify-center text-center group"
+                            data-shape="circle" data-n="10" data-m="1" data-freq="528" data-mantra="RAM (Solar / 10 Petals)">
+                        <span class="font-bold text-amber-400 text-sm group-hover:scale-110 transition-transform">RAM</span>
+                        <span class="text-[10px] text-slate-400 font-mono">528 Hz</span>
+                        <span class="text-[9px] text-amber-200/70">10 Petals ($n=10$)</span>
+                    </button>
+
+                    <button class="mantra-btn p-2 rounded-xl bg-slate-950 hover:bg-amber-950/40 border border-amber-900/50 text-left transition flex flex-col items-center justify-center text-center group"
+                            data-shape="circle" data-n="12" data-m="1" data-freq="639" data-mantra="YAM (Heart / 12 Petals)">
+                        <span class="font-bold text-amber-400 text-sm group-hover:scale-110 transition-transform">YAM</span>
+                        <span class="text-[10px] text-slate-400 font-mono">639 Hz</span>
+                        <span class="text-[9px] text-amber-200/70">12 Petals ($n=12$)</span>
+                    </button>
+
+                    <button class="mantra-btn p-2 rounded-xl bg-slate-950 hover:bg-amber-950/40 border border-amber-900/50 text-left transition flex flex-col items-center justify-center text-center group"
+                            data-shape="circle" data-n="16" data-m="1" data-freq="741" data-mantra="HAM (Throat / 16 Petals)">
+                        <span class="font-bold text-amber-400 text-sm group-hover:scale-110 transition-transform">HAM</span>
+                        <span class="text-[10px] text-slate-400 font-mono">741 Hz</span>
+                        <span class="text-[9px] text-amber-200/70">16 Petals ($n=16$)</span>
+                    </button>
+
+                    <button class="mantra-btn p-2 rounded-xl bg-slate-950 hover:bg-amber-950/40 border border-amber-900/50 text-left transition flex flex-col items-center justify-center text-center group"
+                            data-shape="circle" data-n="2" data-m="2" data-freq="852" data-mantra="OM (Third Eye / Rosette)">
+                        <span class="font-bold text-amber-300 text-sm group-hover:scale-110 transition-transform">OM ॐ</span>
+                        <span class="text-[10px] text-slate-400 font-mono">852 Hz</span>
+                        <span class="text-[9px] text-amber-200/70">Rosette ($n=2, m=2$)</span>
+                    </button>
+
+                    <button class="mantra-btn p-2 rounded-xl bg-slate-950 hover:bg-amber-950/40 border border-amber-700/60 text-left transition flex flex-col items-center justify-center text-center group col-span-3"
+                            data-shape="circle" data-n="0" data-m="3" data-freq="117.5" data-ellipticity="1.35" data-mantra="Pyramid OM (CymaScope Ellipse)">
+                        <span class="font-bold text-amber-300 text-sm group-hover:scale-105 transition-transform flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-monument text-amber-400"></i> Great Pyramid OM (CymaScope Ellipse)
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-mono">117.5 Hz (King's Chamber Sarcophagus Resonance)</span>
+                        <span class="text-[9px] text-amber-300/80">Concentric Elliptical Wave Rings on Disc</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Flower Pattern Presets Card -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-lg">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-seedling text-emerald-400"></i> Flower Pattern Presets
+                    </h2>
+                    <span class="text-xs bg-slate-800 text-emerald-400 font-mono px-2 py-0.5 rounded-full border border-slate-700">Chladni Modes</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <button class="preset-btn p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-left transition flex flex-col gap-1 group"
+                            data-shape="circle" data-n="4" data-m="1" data-freq="3154" data-alpha="1.0">
+                        <span class="font-bold text-cyan-400 group-hover:text-cyan-300 flex items-center justify-between">
+                            4-Petal Flower
+                            <i class="fa-solid fa-clover"></i>
+                        </span>
+                        <span class="text-slate-400 font-mono text-[11px]">3,154 Hz</span>
+                    </button>
+
+                    <button class="preset-btn p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-left transition flex flex-col gap-1 group"
+                            data-shape="circle" data-n="6" data-m="1" data-freq="3406" data-alpha="1.0">
+                        <span class="font-bold text-cyan-400 group-hover:text-cyan-300 flex items-center justify-between">
+                            6-Petal Rosette
+                            <i class="fa-solid fa-dharmachakra"></i>
+                        </span>
+                        <span class="text-slate-400 font-mono text-[11px]">3,406 Hz</span>
+                    </button>
+
+                    <button class="preset-btn p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-left transition flex flex-col gap-1 group"
+                            data-shape="circle" data-n="8" data-m="2" data-freq="4338" data-alpha="1.0">
+                        <span class="font-bold text-cyan-400 group-hover:text-cyan-300 flex items-center justify-between">
+                            8-Petal Starburst
+                            <i class="fa-solid fa-sun"></i>
+                        </span>
+                        <span class="text-slate-400 font-mono text-[11px]">4,338 Hz</span>
+                    </button>
+
+                    <button class="preset-btn p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-left transition flex flex-col gap-1 group"
+                            data-shape="square" data-n="3" data-m="3" data-freq="2850" data-alpha="0.0">
+                        <span class="font-bold text-emerald-400 group-hover:text-emerald-300 flex items-center justify-between">
+                            Square Lattice
+                            <i class="fa-solid fa-border-all"></i>
+                        </span>
+                        <span class="text-slate-400 font-mono text-[11px]">2,850 Hz</span>
+                    </button>
+
+                    <button class="preset-btn p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-left transition flex flex-col gap-1 group"
+                            data-shape="square" data-n="5" data-m="2" data-freq="3595" data-alpha="0.8">
+                        <span class="font-bold text-emerald-400 group-hover:text-emerald-300 flex items-center justify-between">
+                            Floral Superposition
+                            <i class="fa-solid fa-fan"></i>
+                        </span>
+                        <span class="text-slate-400 font-mono text-[11px]">3,595 Hz</span>
+                    </button>
+
+                    <button class="preset-btn p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-left transition flex flex-col gap-1 group"
+                            data-shape="circle" data-n="12" data-m="2" data-freq="5408" data-alpha="1.0">
+                        <span class="font-bold text-cyan-400 group-hover:text-cyan-300 flex items-center justify-between">
+                            12-Petal Mandala
+                            <i class="fa-solid fa-snowflake"></i>
+                        </span>
+                        <span class="text-slate-400 font-mono text-[11px]">5,408 Hz</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mode Tuning & Material Controls Card -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-lg space-y-4">
+                <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-cyan-400"></i> Physical Parameters & Modes
+                </h2>
+
+                <!-- Plate Shape & Material Selector -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">Plate Shape / Medium</label>
+                        <select id="shapeSelect" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 focus:ring-1 focus:ring-cyan-500 focus:outline-none">
+                            <option value="circle">Circular Plate</option>
+                            <option value="square">Square Plate</option>
+                            <option value="ellipse">Elliptical Boundary Plate</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">Material (E, &rho;, Q)</label>
+                        <select id="materialSelect" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 focus:ring-1 focus:ring-cyan-500 focus:outline-none">
+                            <option value="aluminum">Aluminum (High Q = 1000)</option>
+                            <option value="brass">Brass (Medium Q = 500)</option>
+                            <option value="steel">Steel (High Stiffness, Q = 1200)</option>
+                            <option value="glass">Glass / Quartz (Ultra Q = 2000)</option>
+                            <option value="granite">Pyramid Granite (Q = 300)</option>
+                            <option value="acrylic">Acrylic Polymer (Damped Q = 50)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Ellipticity / Aspect Ratio Control Slider -->
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-slate-300 font-medium flex items-center gap-1.5">
+                            <i class="fa-solid fa-shapes text-amber-400"></i> Elliptical Wave Deformation ($\epsilon$):
+                        </span>
+                        <span id="ellipticityVal" class="font-mono text-amber-400 font-bold">1.00x</span>
+                    </div>
+                    <input type="range" id="ellipticitySlider" min="0.5" max="2.0" value="1.0" step="0.05"
+                           class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                    <p class="text-[10px] text-slate-500 mt-1">Applies elliptical wave symmetry to circular discs, square plates, and elliptical boundaries.</p>
+                </div>
+
+                <!-- Azimuthal/Radial Mode Slider (n) -->
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-slate-300 font-medium">Azimuthal Mode / Radial Petals ($n$):</span>
+                        <span id="nValue" class="font-mono text-cyan-400 font-bold">4</span>
+                    </div>
+                    <input type="range" id="nSlider" min="0" max="16" value="4" step="1"
+                           class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+                </div>
+
+                <!-- Concentric Radial Mode Slider (m) -->
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-slate-300 font-medium">Concentric Rings / Linear Nodes ($m$):</span>
+                        <span id="mValue" class="font-mono text-cyan-400 font-bold">1</span>
+                    </div>
+                    <input type="range" id="mSlider" min="0" max="6" value="1" step="1"
+                           class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+                </div>
+
+                <!-- Driving Frequency Control -->
+                <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-wave-square text-emerald-400"></i> Drive Frequency ($f_{\text{drive}}$):
+                        </label>
+                        <div class="flex items-center gap-1">
+                            <input type="number" id="freqInput" min="20" max="10000" value="3154" step="1"
+                                   class="w-24 bg-slate-900 border border-slate-700 text-emerald-400 font-mono font-bold text-xs rounded-lg px-2 py-1 text-right focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                            <span class="text-xs text-slate-400 font-mono">Hz</span>
+                        </div>
+                    </div>
+                    
+                    <input type="range" id="freqSlider" min="50" max="10000" value="3154" step="1"
+                           class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    
+                    <!-- Frequency Fine-Tune Nudge Buttons -->
+                    <div class="flex items-center justify-between gap-1 text-[11px] pt-1">
+                        <span class="text-slate-400 text-[10px]">Fine-Tune:</span>
+                        <div class="flex items-center gap-1 font-mono">
+                            <button class="freq-step-btn px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700" data-step="-100">-100</button>
+                            <button class="freq-step-btn px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700" data-step="-10">-10</button>
+                            <button class="freq-step-btn px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700" data-step="-1">-1</button>
+                            <button class="freq-step-btn px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700" data-step="1">+1</button>
+                            <button class="freq-step-btn px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700" data-step="10">+10</button>
+                            <button class="freq-step-btn px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700" data-step="100">+100</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3D Surface Flexure & Bouncing Grain Controls -->
+                <div class="bg-cyan-950/20 p-3 rounded-xl border border-cyan-800/40 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-cube text-cyan-400"></i> 3D Particle & Flexure Controls
+                        </span>
+                        <span class="text-[10px] bg-cyan-900/60 text-cyan-200 px-2 py-0.5 rounded font-mono">3D Physics</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <div class="flex justify-between text-[11px] text-slate-300 mb-1">
+                                <span>Plate 3D Bending:</span>
+                                <span id="flexureVal" class="font-mono text-cyan-400 font-bold">1.0x</span>
+                            </div>
+                            <input type="range" id="flexureSlider" min="0" max="3" step="0.1" value="1.0"
+                                   class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[11px] text-slate-300 mb-1">
+                                <span>3D Grain Bouncing:</span>
+                                <span id="bounceVal" class="font-mono text-cyan-400 font-bold">1.0x</span>
+                            </div>
+                            <input type="range" id="bounceSlider" min="0" max="2.5" step="0.1" value="1.0"
+                                   class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vibration Amplitude & Sand Density -->
+                <div class="pt-2 border-t border-slate-800 grid grid-cols-2 gap-3">
+                    <div>
+                        <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                            <span>Vibration Amplitude:</span>
+                            <span id="ampVal" class="font-mono text-slate-200">75%</span>
+                        </div>
+                        <input type="range" id="ampSlider" min="10" max="150" value="75"
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-400">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                            <span>Sand Particle Density:</span>
+                            <span id="particleVal" class="font-mono text-slate-200">12,000</span>
+                        </div>
+                        <input type="range" id="particleSlider" min="3000" max="25000" step="1000" value="12000"
+                               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-400">
+                    </div>
+                </div>
+
+                <!-- Particle Style Buttons -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Sand Particle Color</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button class="color-btn py-1 px-2 text-xs rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 active-color" data-color="white">White Salt</button>
+                        <button class="color-btn py-1 px-2 text-xs rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-amber-300" data-color="gold">Gold Dust</button>
+                        <button class="color-btn py-1 px-2 text-xs rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-cyan-300" data-color="cyan">Neon Cyan</button>
+                        <button class="color-btn py-1 px-2 text-xs rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-rose-300" data-color="rose">Crimson</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Educational Info Modal -->
+    <div id="infoModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl overflow-y-auto max-h-[90vh] space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-atom text-cyan-400"></i> Physics of Pattern Formation & 3D Cymatics
+                </h3>
+                <button id="closeInfoModal" class="text-slate-400 hover:text-white text-lg p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="text-sm text-slate-300 leading-relaxed space-y-3">
+                <p>
+                    <strong>1. 3D Surface Flexure & Wave Motion:</strong><br>
+                    In 3D mode, the metal plate geometry physically deforms dynamically according to standing acoustic wave height:
+                </p>
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-cyan-300 text-center font-mono my-2 overflow-x-auto">
+                    $$z_{\text{plate}}(x, y, t) = A \cdot J_n\left(k_{n,m} r\right) \cdot \cos(n \theta) \cdot \sin(2\pi f_{\text{drive}} t)$$
+                </div>
+                <p>
+                    <strong>2. 3D Grain Bouncing Physics & Gravity:</strong><br>
+                    Sand grains on antinodes receive vertical kinetic energy boosts proportional to amplitude. When airborne ($z > z_{\text{plate}}$), grains follow parabolic trajectories under gravity:
+                </p>
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-emerald-300 text-center font-mono my-2 overflow-x-auto">
+                    $$\frac{d^2 z}{dt^2} = -g, \quad \vec{v}_{xy} \rightarrow -\nabla w(x,y) \cdot P_{\text{resonance}}$$
+                </div>
+                <ul class="list-disc pl-5 space-y-1 text-slate-300 text-xs">
+                    <li><strong>3D Nodal Accumulation:</strong> Airborne particles land back on the surface, sliding down displacement gradients until settling on stationary nodal lines ($w=0$).</li>
+                    <li><strong>Resonance Line Width:</strong> Quality factor $Q$ controls how tightly particles concentrate into sharp geometric patterns.</li>
+                </ul>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800 flex justify-end">
+                <button id="closeModalBtn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs rounded-xl border border-slate-700">
+                    Close Guide
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Active Viewport Mode State ('2d' or '3d')
+        let viewMode = '2d';
+
+        // 2D Canvas & Context Setup
+        const canvas = document.getElementById('chladniCanvas');
+        const ctx = canvas.getContext('2d');
+        const waveCanvas = document.getElementById('waveCanvas');
+        const waveCtx = waveCanvas ? waveCanvas.getContext('2d') : null;
+
+        // Canvas Responsive Dimension & 2D/3D Particles State
+        let canvasSize = 500;
+        let particles2D = [];
+
+        // Audio Context State
+        let audioCtx = null;
+        let oscillator = null;
+        let gainNode = null;
+        let isAudioPlaying = false;
+
+        // Material Constants Database
+        const MATERIALS = {
+            aluminum: { name: 'Aluminum', E: 69e9, rho: 2700, nu: 0.33, Q: 1000, color: 0x94a3b8, metalness: 0.9, roughness: 0.2 },
+            brass:    { name: 'Brass',    E: 100e9, rho: 8500, nu: 0.34, Q: 500,  color: 0xf59e0b, metalness: 0.85, roughness: 0.25 },
+            steel:    { name: 'Steel',    E: 200e9, rho: 7850, nu: 0.30, Q: 1200, color: 0x64748b, metalness: 0.95, roughness: 0.15 },
+            glass:    { name: 'Glass / Quartz', E: 70e9, rho: 2500, nu: 0.22, Q: 2000, color: 0x38bdf8, metalness: 0.2, roughness: 0.05, opacity: 0.75, transparent: true },
+            granite:  { name: 'Pyramid Granite', E: 50e9, rho: 2600, nu: 0.25, Q: 300,  color: 0x78716c, metalness: 0.1, roughness: 0.8 },
+            acrylic:  { name: 'Acrylic Polymer', E: 3.2e9, rho: 1190, nu: 0.37, Q: 50, color: 0xec4899, metalness: 0.1, roughness: 0.3, opacity: 0.8, transparent: true }
+        };
+
+        // Physics State Parameters
+        let currentMaterialKey = 'aluminum';
+        let shape = 'circle';       // 'circle', 'ellipse', or 'square'
+        let modeN = 4;              // Azimuthal / X mode
+        let modeM = 1;              // Concentric / Y mode
+        let alpha = 1.0;            // Mode mixing ratio for square plate
+        let ellipticity = 1.0;      // Elliptical deformation factor (applies across all shapes)
+        let baseFrequency = 3154;   // Drive Frequency in Hz
+        let theoreticalResFreq = 3154; // Natural Resonant Frequency
+        let patternProbability = 1.0;  // 0.0 to 1.0
+        let particleCount = 12000;
+        let amplitudeScale = 0.75;
+        let flexureScale = 1.0;
+        let bounceScale = 1.0;
+        let showNodalOverlay = false;
+        let isSweeping = false;
+        let sweepDirection = 1;
+        let particleColorTheme = 'white';
+
+        // -------------------------------------------------------------
+        // Three.js 3D Cymatics Simulation State
+        // -------------------------------------------------------------
+        let scene3D, camera3D, renderer3D, controls3D;
+        let plateMesh3D, particleSystem3D, particleGeometry3D;
+        let particles3DData = []; // Position (x,y,z), Velocity (vx,vy,vz)
+        let originalPlatePositions = null;
+
+        // Bessel function for standing wave Eigenmodes
+        function besselJ(n, x) {
+            let sum = 0;
+            const steps = 30;
+            const dtau = Math.PI / steps;
+            for (let i = 0; i <= steps; i++) {
+                const tau = i * dtau;
+                const weight = (i === 0 || i === steps) ? 0.5 : 1.0;
+                sum += weight * Math.cos(n * tau - x * Math.sin(tau));
+            }
+            return (sum * dtau) / Math.PI;
+        }
+
+        function getBesselK(n, m) {
+            return Math.PI * (m + n * 0.5 + 0.5);
+        }
+
+        // Theoretical Displacement Function w(x,y)
+        function getDisplacement(x, y) {
+            // Apply elliptical transformation factor across all plate shapes (circular, square, elliptical boundary)
+            const ex = x / Math.sqrt(ellipticity);
+            const ey = y * Math.sqrt(ellipticity);
+
+            if (shape === 'circle' || shape === 'ellipse') {
+                const aspect = shape === 'ellipse' ? 0.76 : 1.0;
+                const r = Math.sqrt(ex * ex + (ey / aspect) * (ey / aspect));
+                const theta = Math.atan2(ey / aspect, ex);
+                const k = getBesselK(modeN, modeM);
+                const Jn = besselJ(modeN, k * r);
+                const angular = Math.cos(modeN * theta);
+                return Jn * angular;
+            } else {
+                const nx = modeN * Math.PI * (ex + 1) * 0.5;
+                const ny = modeM * Math.PI * (ey + 1) * 0.5;
+                const mx = modeM * Math.PI * (ex + 1) * 0.5;
+                const my = modeN * Math.PI * (ey + 1) * 0.5;
+
+                const term1 = Math.cos(nx) * Math.cos(ny);
+                const term2 = Math.cos(mx) * Math.cos(my);
+                return term1 - alpha * term2;
+            }
+        }
+
+        function getGradient(x, y) {
+            const eps = 0.005;
+            const d1 = getDisplacement(x + eps, y);
+            const d2 = getDisplacement(x - eps, y);
+            const d3 = getDisplacement(x, y + eps);
+            const d4 = getDisplacement(x, y - eps);
+            return {
+                dx: (d1 - d2) / (2 * eps),
+                dy: (d3 - d4) / (2 * eps)
+            };
+        }
+
+        // Resonant frequency calculation
+        function calculateResonantFrequency(n, m, matKey, plateShape) {
+            const mat = MATERIALS[matKey] || MATERIALS.aluminum;
+            const h = 0.002; 
+            const a = 0.25;  
+
+            const D = (mat.E * Math.pow(h, 3)) / (12 * (1 - Math.pow(mat.nu, 2)));
+            const massPerArea = mat.rho * h;
+            const baseCoeff = (1 / (2 * Math.PI)) * Math.sqrt(D / massPerArea);
+
+            let eigenvalue = 0;
+            if (plateShape === 'circle') {
+                const k = Math.PI * (m + n * 0.5 + 0.5);
+                eigenvalue = Math.pow(k / a, 2);
+            } else if (plateShape === 'ellipse') {
+                const a_e = 0.25;
+                const k = Math.PI * (m + n * 0.5 + 0.5);
+                eigenvalue = Math.pow(k / a_e, 2) * 0.85;
+            } else { 
+                const L = 0.4;
+                eigenvalue = (Math.PI * Math.PI / (L * L)) * (n * n + m * m);
+            }
+
+            const f_res = baseCoeff * eigenvalue;
+            return Math.max(50, Math.min(10000, Math.round(f_res)));
+        }
+
+        function updatePatternProbability() {
+            theoreticalResFreq = calculateResonantFrequency(modeN, modeM, currentMaterialKey, shape);
+            const mat = MATERIALS[currentMaterialKey] || MATERIALS.aluminum;
+            const deltaF = Math.abs(baseFrequency - theoreticalResFreq);
+            
+            const gamma = theoreticalResFreq / (2 * mat.Q);
+            patternProbability = 1 / (1 + Math.pow(deltaF / gamma, 2));
+
+            const probBar = document.getElementById('probBar');
+            const probPercentage = document.getElementById('probPercentage');
+            const targetResFreq = document.getElementById('targetResFreq');
+            const materialQVal = document.getElementById('materialQVal');
+            const statusIndicator = document.getElementById('statusIndicator');
+
+            const percentStr = (patternProbability * 100).toFixed(1) + '%';
+            if (probBar) probBar.style.width = percentStr;
+            if (probPercentage) {
+                probPercentage.innerText = percentStr;
+                if (patternProbability > 0.7) probPercentage.className = 'text-emerald-400 font-bold font-mono';
+                else if (patternProbability > 0.3) probPercentage.className = 'text-amber-400 font-bold font-mono';
+                else probPercentage.className = 'text-rose-400 font-bold font-mono';
+            }
+            if (targetResFreq) targetResFreq.innerText = `${theoreticalResFreq.toLocaleString()} Hz`;
+            if (materialQVal) materialQVal.innerText = mat.Q;
+
+            if (statusIndicator) {
+                if (patternProbability > 0.7) statusIndicator.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse';
+                else if (patternProbability > 0.3) statusIndicator.className = 'w-2.5 h-2.5 rounded-full bg-amber-400';
+                else statusIndicator.className = 'w-2.5 h-2.5 rounded-full bg-rose-500';
+            }
+        }
+
+        function init3DScene() {
+            const container = document.getElementById('container3D');
+            const canvas3D = document.getElementById('chladni3DCanvas');
+
+            scene3D = new THREE.Scene();
+            scene3D.background = new THREE.Color(0x090d16);
+
+            camera3D = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+            camera3D.position.set(0, 4.2, 4.5);
+
+            renderer3D = new THREE.WebGLRenderer({ canvas: canvas3D, antialias: true });
+            renderer3D.setSize(container.clientWidth, container.clientHeight);
+            renderer3D.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer3D.shadowMap.enabled = true;
+
+            controls3D = new THREE.OrbitControls(camera3D, renderer3D.domElement);
+            controls3D.enableDamping = true;
+            controls3D.dampingFactor = 0.05;
+            controls3D.maxPolarAngle = Math.PI / 2 - 0.02;
+
+            // Ambient & Directional Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene3D.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0x38bdf8, 1.2);
+            dirLight.position.set(5, 8, 5);
+            scene3D.add(dirLight);
+
+            const pointLight = new THREE.PointLight(0xf59e0b, 0.8, 10);
+            pointLight.position.set(-3, 4, -2);
+            scene3D.add(pointLight);
+
+            build3DPlateMesh();
+            init3DParticles();
+        }
+
+        function getParticleHexColor() {
+            switch (particleColorTheme) {
+                case 'gold': return 0xfbbf24;
+                case 'cyan': return 0x22d3ee;
+                case 'rose': return 0xfb7185;
+                default: return 0xffffff;
+            }
+        }
+
+        function build3DPlateMesh() {
+            if (plateMesh3D) scene3D.remove(plateMesh3D);
+
+            let geometry;
+            const matParams = MATERIALS[currentMaterialKey] || MATERIALS.aluminum;
+
+            if (shape === 'circle') {
+                geometry = new THREE.CylinderGeometry(2, 2, 0.05, 96, 64);
+            } else if (shape === 'ellipse') {
+                geometry = new THREE.CylinderGeometry(2 * 0.95, 2 * 0.95, 0.05, 96, 64);
+                geometry.scale(1.0, 1.0, 0.76);
+            } else { // square
+                geometry = new THREE.BoxGeometry(3.6, 0.05, 3.6, 80, 4, 80);
+            }
+
+            const material = new THREE.MeshStandardMaterial({
+                color: matParams.color,
+                metalness: matParams.metalness,
+                roughness: matParams.roughness,
+                opacity: matParams.opacity || 1.0,
+                transparent: matParams.transparent || false,
+                wireframe: false
+            });
+
+            plateMesh3D = new THREE.Mesh(geometry, material);
+            scene3D.add(plateMesh3D);
+
+            // Store original un-deformed vertex positions
+            originalPlatePositions = geometry.attributes.position.clone();
+        }
+
+        function init3DParticles() {
+            if (particleSystem3D) scene3D.remove(particleSystem3D);
+
+            particleGeometry3D = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            particles3DData = [];
+
+            for (let i = 0; i < particleCount; i++) {
+                let x = 0, y = 0;
+                if (shape === 'circle') {
+                    const r = Math.sqrt(Math.random()) * 0.95;
+                    const theta = Math.random() * 2 * Math.PI;
+                    x = r * Math.cos(theta);
+                    y = r * Math.sin(theta);
+                } else if (shape === 'ellipse') {
+                    const r = Math.sqrt(Math.random()) * 0.95;
+                    const theta = Math.random() * 2 * Math.PI;
+                    x = r * Math.cos(theta) * 0.95;
+                    y = r * Math.sin(theta) * 0.76;
+                } else {
+                    x = (Math.random() - 0.5) * 1.9;
+                    y = (Math.random() - 0.5) * 1.9;
+                }
+
+                // Map 2D normalized [-1, 1] to 3D Scene scale (~1.8 radius)
+                const worldX = x * 1.8;
+                const worldZ = y * 1.8;
+                const disp = getDisplacement(x, y);
+                const worldY = 0.03 + Math.abs(disp) * 0.1;
+
+                positions[i * 3] = worldX;
+                positions[i * 3 + 1] = worldY;
+                positions[i * 3 + 2] = worldZ;
+
+                particles3DData.push({
+                    nx: x, ny: y, // normalized 2D plate coords
+                    x: worldX, y: worldY, z: worldZ,
+                    vx: (Math.random() - 0.5) * 0.002,
+                    vy: 0,
+                    vz: (Math.random() - 0.5) * 0.002
+                });
+            }
+
+            particleGeometry3D.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const pMaterial = new THREE.PointsMaterial({
+                color: getParticleHexColor(),
+                size: 0.045,
+                sizeAttenuation: true
+            });
+
+            particleSystem3D = new THREE.Points(particleGeometry3D, pMaterial);
+            scene3D.add(particleSystem3D);
+        }
+
+        function update3DPhysics(time) {
+            if (!plateMesh3D || !originalPlatePositions) return;
+
+            // 1. Flex 3D Plate Mesh Vertices dynamically
+            const posAttr = plateMesh3D.geometry.attributes.position;
+            const origAttr = originalPlatePositions;
+            const timePhase = time * 0.012 * (baseFrequency / 1000);
+
+            for (let i = 0; i < posAttr.count; i++) {
+                const ox = origAttr.getX(i);
+                const oy = origAttr.getY(i);
+                const oz = origAttr.getZ(i);
+
+                // Map world position to normalized plate coordinates
+                const nx = ox / 1.8;
+                const ny = oz / 1.8;
+
+                if (Math.abs(nx) <= 1.0 && Math.abs(ny) <= 1.0) {
+                    const disp = getDisplacement(nx, ny);
+                    // Deform top surface of the plate in Y axis
+                    if (oy > 0) {
+                        const dynamicY = oy + disp * Math.sin(timePhase) * 0.18 * amplitudeScale * flexureScale * patternProbability;
+                        posAttr.setY(i, dynamicY);
+                    }
+                }
+            }
+            posAttr.needsUpdate = true;
+
+            // 2. Update 3D Particle Grains (Drift to nodes + 3D Airborne Bounce)
+            const positions = particleGeometry3D.attributes.position.array;
+            const effectiveResonance = Math.max(0.08, patternProbability);
+
+            for (let i = 0; i < particleCount; i++) {
+                const p = particles3DData[i];
+                const disp = getDisplacement(p.nx, p.ny);
+                const absDisp = Math.abs(disp);
+                const grad = getGradient(p.nx, p.ny);
+
+                // Surface plate height at particle position
+                const plateSurfaceY = 0.026 + disp * Math.sin(timePhase) * 0.18 * amplitudeScale * flexureScale * patternProbability;
+
+                // Grain physics on plate vs in airborne bounce state
+                if (p.y <= plateSurfaceY + 0.005) {
+                    // Particle on plate surface
+                    p.y = plateSurfaceY + 0.002;
+                    p.vy = 0;
+
+                    // Push horizontally towards zero displacement nodal lines
+                    const driftFactor = 0.006 * effectiveResonance;
+                    const kickStrength = absDisp * amplitudeScale * 0.016 * (2.0 - effectiveResonance);
+                    
+                    const jitterX = (Math.random() - 0.5) * kickStrength;
+                    const jitterZ = (Math.random() - 0.5) * kickStrength;
+
+                    p.vx = p.vx * 0.82 - grad.dx * absDisp * driftFactor + jitterX;
+                    p.vz = p.vz * 0.82 - grad.dy * absDisp * driftFactor + jitterZ;
+
+                    // Strong antinode vibrations launch sand grain airborne into 3D!
+                    if (absDisp > 0.15 && bounceScale > 0.05) {
+                        const launchForce = absDisp * amplitudeScale * 0.025 * bounceScale * (2.0 - patternProbability * 0.8);
+                        p.vy = launchForce * (0.8 + Math.random() * 0.4);
+                    }
+                } else {
+                    // Airborne Particle Trajectory (Gravity + Drag)
+                    p.vy -= 0.0018; // Gravity acceleration
+                    p.y += p.vy;
+                }
+
+                p.nx += p.vx;
+                p.ny += p.vz;
+
+                // Plate edge containment
+                if (shape === 'circle') {
+                    const r = Math.sqrt(p.nx * p.nx + p.ny * p.ny);
+                    if (r > 0.96) {
+                        const angle = Math.atan2(p.ny, p.nx);
+                        p.nx = 0.95 * Math.cos(angle);
+                        p.ny = 0.95 * Math.sin(angle);
+                        p.vx *= -0.5;
+                        p.vz *= -0.5;
+                    }
+                } else if (shape === 'ellipse') {
+                    const normR = Math.sqrt(Math.pow(p.nx / 0.95, 2) + Math.pow(p.ny / 0.76, 2));
+                    if (normR > 1.0) {
+                        const angle = Math.atan2(p.ny / 0.76, p.nx / 0.95);
+                        p.nx = 0.94 * 0.95 * Math.cos(angle);
+                        p.ny = 0.94 * 0.76 * Math.sin(angle);
+                        p.vx *= -0.5;
+                        p.vz *= -0.5;
+                    }
+                } else {
+                    if (Math.abs(p.nx) > 0.96) {
+                        p.nx = Math.sign(p.nx) * 0.95;
+                        p.vx *= -0.5;
+                    }
+                    if (Math.abs(p.ny) > 0.96) {
+                        p.ny = Math.sign(p.ny) * 0.95;
+                        p.vz *= -0.5;
+                    }
+                }
+
+                p.x = p.nx * 1.8;
+                p.z = p.ny * 1.8;
+
+                positions[i * 3] = p.x;
+                positions[i * 3 + 1] = p.y;
+                positions[i * 3 + 2] = p.z;
+            }
+
+            particleGeometry3D.attributes.position.needsUpdate = true;
+        }
+
+        function resizeCanvas() {
+            if (!canvas) return;
+            const container = canvas.parentElement;
+            const availableWidth = container ? container.clientWidth - 32 : 500;
+            canvasSize = Math.max(Math.min(availableWidth, 520), 280);
+            
+            canvas.width = canvasSize;
+            canvas.height = canvasSize;
+
+            if (waveCanvas && waveCanvas.parentElement) {
+                waveCanvas.width = waveCanvas.parentElement.clientWidth;
+                waveCanvas.height = waveCanvas.parentElement.clientHeight;
+            }
+
+            if (renderer3D && document.getElementById('container3D')) {
+                const c3d = document.getElementById('container3D');
+                camera3D.aspect = c3d.clientWidth / c3d.clientHeight;
+                camera3D.updateProjectionMatrix();
+                renderer3D.setSize(c3d.clientWidth, c3d.clientHeight);
+            }
+
+            init2DParticles();
+        }
+
+        function init2DParticles() {
+            particles2D = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles2D.push(new Particle2D());
+            }
+        }
+
+        function resetParticlePosition2D(p) {
+            if (shape === 'circle') {
+                const r = Math.sqrt(Math.random()) * 0.95;
+                const theta = Math.random() * 2 * Math.PI;
+                p.x = r * Math.cos(theta);
+                p.y = r * Math.sin(theta);
+            } else if (shape === 'ellipse') {
+                const r = Math.sqrt(Math.random()) * 0.95;
+                const theta = Math.random() * 2 * Math.PI;
+                p.x = r * Math.cos(theta) * 0.95;
+                p.y = r * Math.sin(theta) * 0.76;
+            } else {
+                p.x = (Math.random() - 0.5) * 1.9;
+                p.y = (Math.random() - 0.5) * 1.9;
+            }
+        }
+
+        class Particle2D {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                resetParticlePosition2D(this);
+                this.vx = (Math.random() - 0.5) * 0.002;
+                this.vy = (Math.random() - 0.5) * 0.002;
+            }
+
+            update() {
+                const disp = getDisplacement(this.x, this.y);
+                const absDisp = Math.abs(disp);
+                const grad = getGradient(this.x, this.y);
+                
+                const effectiveResonance = Math.max(0.08, patternProbability);
+                const kickStrength = absDisp * amplitudeScale * 0.018 * (2.0 - effectiveResonance);
+                
+                const jitterX = (Math.random() - 0.5) * kickStrength;
+                const jitterY = (Math.random() - 0.5) * kickStrength;
+
+                const driftFactor = 0.006 * patternProbability;
+                this.vx = this.vx * 0.82 - grad.dx * absDisp * driftFactor + jitterX;
+                this.vy = this.vy * 0.82 - grad.dy * absDisp * driftFactor + jitterY;
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (shape === 'circle') {
+                    const r = Math.sqrt(this.x * this.x + this.y * this.y);
+                    if (r > 0.96) {
+                        const angle = Math.atan2(this.y, this.x);
+                        this.x = 0.95 * Math.cos(angle);
+                        this.y = 0.95 * Math.sin(angle);
+                        this.vx *= -0.5;
+                        this.vy *= -0.5;
+                    }
+                } else if (shape === 'ellipse') {
+                    const normR = Math.sqrt(Math.pow(this.x / 0.95, 2) + Math.pow(this.y / 0.76, 2));
+                    if (normR > 1.0) {
+                        const angle = Math.atan2(this.y / 0.76, this.x / 0.95);
+                        this.x = 0.94 * 0.95 * Math.cos(angle);
+                        this.y = 0.94 * 0.76 * Math.sin(angle);
+                        this.vx *= -0.5;
+                        this.vy *= -0.5;
+                    }
+                } else {
+                    if (Math.abs(this.x) > 0.96) {
+                        this.x = Math.sign(this.x) * 0.95;
+                        this.vx *= -0.5;
+                    }
+                    if (Math.abs(this.y) > 0.96) {
+                        this.y = Math.sign(this.y) * 0.95;
+                        this.vy *= -0.5;
+                    }
+                }
+            }
+        }
+
+        function getParticleStyle() {
+            switch (particleColorTheme) {
+                case 'gold': return { fill: '#fbbf24' };
+                case 'cyan': return { fill: '#22d3ee' };
+                case 'rose': return { fill: '#fb7185' };
+                default: return { fill: '#ffffff' };
+            }
+        }
+
+        function renderWaveform() {
+            if (!waveCtx || !waveCanvas) return;
+            const w = waveCanvas.width;
+            const h = waveCanvas.height;
+            waveCtx.clearRect(0, 0, w, h);
+
+            waveCtx.beginPath();
+            waveCtx.strokeStyle = patternProbability > 0.7 ? '#38bdf8' : (patternProbability > 0.3 ? '#f59e0b' : '#f43f5e');
+            waveCtx.lineWidth = 2;
+            const time = Date.now() * 0.003;
+            const freqFactor = (baseFrequency / 1000) * 0.5;
+            for (let x = 0; x < w; x++) {
+                const normX = (x / w) * Math.PI * 4;
+                const waveVal = Math.sin(normX * freqFactor + time) * (h * 0.3) * amplitudeScale * patternProbability;
+                const y = (h / 2) + waveVal;
+                if (x === 0) waveCtx.moveTo(x, y);
+                else waveCtx.lineTo(x, y);
+            }
+            waveCtx.stroke();
+        }
+
+        function updateFrequencyDisplay() {
+            updatePatternProbability();
+            const freqFormatted = Math.round(baseFrequency).toLocaleString();
+            const dispFreq = document.getElementById('displayFrequency');
+            const freqInput = document.getElementById('freqInput');
+            const freqSlider = document.getElementById('freqSlider');
+
+            if (dispFreq) dispFreq.innerText = `${freqFormatted} Hz`;
+            if (freqInput) freqInput.value = Math.round(baseFrequency);
+            if (freqSlider) freqSlider.value = Math.round(baseFrequency);
+        }
+
+        function toggleAudio() {
+            const btnText = document.getElementById('audioText');
+            const btnIcon = document.getElementById('audioIcon');
+            const audioBtn = document.getElementById('audioToggleBtn');
+
+            if (!isAudioPlaying) {
+                if (!audioCtx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioContext();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                oscillator = audioCtx.createOscillator();
+                gainNode = audioCtx.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(baseFrequency, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.start();
+                isAudioPlaying = true;
+
+                if (btnText) btnText.innerText = 'Audio On';
+                if (btnIcon) btnIcon.className = 'fa-solid fa-volume-high text-emerald-400';
+                if (audioBtn) audioBtn.classList.add('border-emerald-500/50');
+            } else {
+                if (oscillator) {
+                    oscillator.stop();
+                    oscillator.disconnect();
+                    oscillator = null;
+                }
+                isAudioPlaying = false;
+
+                if (btnText) btnText.innerText = 'Audio Off';
+                if (btnIcon) btnIcon.className = 'fa-solid fa-volume-xmark text-slate-400';
+                if (audioBtn) audioBtn.classList.remove('border-emerald-500/50');
+            }
+        }
+
+        function render(timestamp) {
+            if (viewMode === '2d') {
+                const center = canvasSize / 2;
+                const radius = canvasSize * 0.46;
+
+                ctx.fillStyle = '#090d16';
+                ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+                ctx.save();
+                ctx.translate(center, center);
+
+                if (shape === 'circle') {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fill();
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = '#334155';
+                    ctx.stroke();
+                } else if (shape === 'ellipse') {
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, radius * 0.95, radius * 0.76, 0, 0, Math.PI * 2);
+                    ctx.fillStyle = '#061325';
+                    ctx.fill();
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = '#1e3a8a';
+                    ctx.stroke();
+
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+                    ctx.stroke();
+                } else {
+                    ctx.beginPath();
+                    ctx.rect(-radius, -radius, radius * 2, radius * 2);
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fill();
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = '#334155';
+                    ctx.stroke();
+                }
+
+                if (showNodalOverlay) {
+                    const res = 80;
+                    const step = (radius * 2) / res;
+                    ctx.fillStyle = 'rgba(6, 182, 212, 0.2)';
+                    for (let i = 0; i < res; i++) {
+                        for (let j = 0; j < res; j++) {
+                            const px = -radius + i * step;
+                            const py = -radius + j * step;
+                            const normX = px / radius;
+                            const normY = py / radius;
+                            
+                            if (shape === 'circle' && Math.sqrt(normX*normX + normY*normY) > 1.0) continue;
+                            if (shape === 'ellipse' && Math.sqrt(Math.pow(normX/0.95, 2) + Math.pow(normY/0.76, 2)) > 1.0) continue;
+
+                            const d = Math.abs(getDisplacement(normX, normY));
+                            if (d < 0.08) {
+                                ctx.fillRect(px, py, step, step);
+                            }
+                        }
+                    }
+                }
+
+                const style = getParticleStyle();
+                ctx.fillStyle = style.fill;
+
+                for (let i = 0; i < particles2D.length; i++) {
+                    const p = particles2D[i];
+                    p.update();
+                    const px = p.x * radius;
+                    const py = p.y * radius;
+                    ctx.fillRect(px, py, 1.4, 1.4);
+                }
+
+                ctx.beginPath();
+                ctx.arc(0, 0, 7, 0, Math.PI * 2);
+                ctx.fillStyle = '#475569';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#0f172a';
+                ctx.stroke();
+
+                ctx.restore();
+            } else if (viewMode === '3d' && renderer3D) {
+                update3DPhysics(timestamp || 0);
+                controls3D.update();
+                renderer3D.render(scene3D, camera3D);
+            }
+
+            renderWaveform();
+
+            if (isSweeping) {
+                baseFrequency += sweepDirection * 2.0;
+                if (baseFrequency > 5800) sweepDirection = -1;
+                if (baseFrequency < 800) sweepDirection = 1;
+
+                updateFrequencyDisplay();
+                if (isAudioPlaying && oscillator) {
+                    oscillator.frequency.setTargetAtTime(baseFrequency, audioCtx.currentTime, 0.05);
+                }
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        function setupEventListeners() {
+            // Viewport Mode Switcher (2D vs 3D)
+            const view2DBtn = document.getElementById('view2DBtn');
+            const view3DBtn = document.getElementById('view3DBtn');
+            const canvas2D = document.getElementById('chladniCanvas');
+            const container3D = document.getElementById('container3D');
+            const displayEngine = document.getElementById('displayEngine');
+
+            if (view2DBtn && view3DBtn) {
+                view2DBtn.addEventListener('click', () => {
+                    viewMode = '2d';
+                    view2DBtn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-cyan-500 text-slate-950 shadow-md';
+                    view3DBtn.className = 'px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center gap-1.5';
+                    canvas2D.classList.remove('hidden');
+                    canvas2D.classList.add('block');
+                    container3D.classList.add('hidden');
+                    container3D.classList.remove('block');
+                    if (displayEngine) displayEngine.innerText = '2D Pixel Map';
+                });
+
+                view3DBtn.addEventListener('click', () => {
+                    viewMode = '3d';
+                    view3DBtn.className = 'px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-cyan-500 text-slate-950 shadow-md';
+                    view2DBtn.className = 'px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center gap-1.5';
+                    canvas2D.classList.add('hidden');
+                    canvas2D.classList.remove('block');
+                    container3D.classList.remove('hidden');
+                    container3D.classList.add('block');
+                    if (displayEngine) displayEngine.innerText = '3D Three.js WebGL';
+                    resizeCanvas();
+                });
+            }
+
+            // Audio Button
+            const audioBtn = document.getElementById('audioToggleBtn');
+            if (audioBtn) audioBtn.addEventListener('click', toggleAudio);
+
+            // Shape Selector
+            const shapeSelect = document.getElementById('shapeSelect');
+            if (shapeSelect) {
+                shapeSelect.addEventListener('change', (e) => {
+                    shape = e.target.value;
+                    let shapeText = 'Circular';
+                    if (shape === 'ellipse') shapeText = 'Elliptical (CymaScope)';
+                    else if (shape === 'square') shapeText = 'Square';
+                    document.getElementById('displayShape').innerText = shapeText;
+                    updateFrequencyDisplay();
+                    init2DParticles();
+                    build3DPlateMesh();
+                    init3DParticles();
+                });
+            }
+
+            // Material Selector
+            const matSelect = document.getElementById('materialSelect');
+            if (matSelect) {
+                matSelect.addEventListener('change', (e) => {
+                    currentMaterialKey = e.target.value;
+                    updateFrequencyDisplay();
+                    build3DPlateMesh();
+                });
+            }
+
+            // Ellipticity Slider Listener
+            const ellipticitySlider = document.getElementById('ellipticitySlider');
+            if (ellipticitySlider) {
+                ellipticitySlider.addEventListener('input', (e) => {
+                    ellipticity = parseFloat(e.target.value);
+                    document.getElementById('ellipticityVal').innerText = `${ellipticity.toFixed(2)}x`;
+                    updateFrequencyDisplay();
+                });
+            }
+
+            // 3D Flexure & Bounce Sliders
+            const flexureSlider = document.getElementById('flexureSlider');
+            if (flexureSlider) {
+                flexureSlider.addEventListener('input', (e) => {
+                    flexureScale = parseFloat(e.target.value);
+                    document.getElementById('flexureVal').innerText = `${flexureScale.toFixed(1)}x`;
+                });
+            }
+
+            const bounceSlider = document.getElementById('bounceSlider');
+            if (bounceSlider) {
+                bounceSlider.addEventListener('input', (e) => {
+                    bounceScale = parseFloat(e.target.value);
+                    document.getElementById('bounceVal').innerText = `${bounceScale.toFixed(1)}x`;
+                });
+            }
+
+            // Auto-Tune Snap Button
+            const autoTuneBtn = document.getElementById('autoTuneBtn');
+            if (autoTuneBtn) {
+                autoTuneBtn.addEventListener('click', () => {
+                    baseFrequency = theoreticalResFreq;
+                    updateFrequencyDisplay();
+                    if (isAudioPlaying && oscillator) {
+                        oscillator.frequency.setTargetAtTime(baseFrequency, audioCtx.currentTime, 0.05);
+                    }
+                });
+            }
+
+            // Mode N Slider
+            const nSlider = document.getElementById('nSlider');
+            if (nSlider) {
+                nSlider.addEventListener('input', (e) => {
+                    modeN = parseInt(e.target.value);
+                    document.getElementById('nValue').innerText = modeN;
+                    document.getElementById('displayMode').innerText = `(${modeN}, ${modeM})`;
+                    updateFrequencyDisplay();
+                });
+            }
+
+            // Mode M Slider
+            const mSlider = document.getElementById('mSlider');
+            if (mSlider) {
+                mSlider.addEventListener('input', (e) => {
+                    modeM = parseInt(e.target.value);
+                    document.getElementById('mValue').innerText = modeM;
+                    document.getElementById('displayMode').innerText = `(${modeN}, ${modeM})`;
+                    updateFrequencyDisplay();
+                });
+            }
+
+            // Frequency Slider
+            const freqSlider = document.getElementById('freqSlider');
+            if (freqSlider) {
+                freqSlider.addEventListener('input', (e) => {
+                    baseFrequency = parseFloat(e.target.value);
+                    updateFrequencyDisplay();
+                    if (isAudioPlaying && oscillator) {
+                        oscillator.frequency.setTargetAtTime(baseFrequency, audioCtx.currentTime, 0.05);
+                    }
+                });
+            }
+
+            // Numeric Frequency Input
+            const freqInput = document.getElementById('freqInput');
+            if (freqInput) {
+                freqInput.addEventListener('change', (e) => {
+                    let val = parseFloat(e.target.value);
+                    if (isNaN(val)) val = 3154;
+                    baseFrequency = Math.max(20, Math.min(10000, val));
+                    updateFrequencyDisplay();
+                    if (isAudioPlaying && oscillator) {
+                        oscillator.frequency.setTargetAtTime(baseFrequency, audioCtx.currentTime, 0.05);
+                    }
+                });
+            }
+
+            // Step Nudge Buttons
+            document.querySelectorAll('.freq-step-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const step = parseFloat(btn.dataset.step);
+                    baseFrequency = Math.max(20, Math.min(10000, baseFrequency + step));
+                    updateFrequencyDisplay();
+                    if (isAudioPlaying && oscillator) {
+                        oscillator.frequency.setTargetAtTime(baseFrequency, audioCtx.currentTime, 0.05);
+                    }
+                });
+            });
+
+            // Mantra Preset Buttons
+            document.querySelectorAll('.mantra-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    shape = btn.dataset.shape;
+                    modeN = parseInt(btn.dataset.n);
+                    modeM = parseInt(btn.dataset.m);
+                    baseFrequency = parseFloat(btn.dataset.freq);
+                    ellipticity = btn.dataset.ellipticity ? parseFloat(btn.dataset.ellipticity) : (btn.dataset.shape === 'ellipse' ? 1.35 : 1.0);
+                    
+                    const mantraName = btn.dataset.mantra;
+                    const mantraContainer = document.getElementById('displayMantraContainer');
+                    const mantraDisplay = document.getElementById('displayMantra');
+                    if (mantraContainer) mantraContainer.classList.remove('hidden');
+                    if (mantraDisplay) mantraDisplay.innerText = mantraName;
+
+                    if (shapeSelect) shapeSelect.value = shape;
+                    if (nSlider) nSlider.value = modeN;
+                    if (mSlider) mSlider.value = modeM;
+                    if (ellipticitySlider) ellipticitySlider.value = ellipticity;
+                    document.getElementById('ellipticityVal').innerText = `${ellipticity.toFixed(2)}x`;
+                    document.getElementById('nValue').innerText = modeN;
+                    document.getElementById('mValue').innerText = modeM;
+                    document.getElementById('displayMode').innerText = `(${modeN}, ${modeM})`;
+                    document.getElementById('displayShape').innerText = shape === 'circle' ? 'Circular' : (shape === 'ellipse' ? 'Elliptical Boundary' : 'Square');
+
+                    updateFrequencyDisplay();
+
+                    if (isAudioPlaying && oscillator) {
+                        oscillator.frequency.setTargetAtTime(baseFrequency, audioCtx.currentTime, 0.05);
+                    }
+
+                    init2DParticles();
+                    build3DPlateMesh();
+                    init3DParticles();
+                });
+            });
+
+            // Amplitude Slider
+            const ampSlider = document.getElementById('ampSlider');
+            if (ampSlider) {
+                ampSlider.addEventListener('input', (e) => {
+                    amplitudeScale = parseInt(e.target.value) / 100;
+                    document.getElementById('ampVal').innerText = `${e.target.value}%`;
+                });
+            }
+
+            // Particle Slider
+            const particleSlider = document.getElementById('particleSlider');
+            if (particleSlider) {
+                particleSlider.addEventListener('input', (e) => {
+                    particleCount = parseInt(e.target.value);
+                    document.getElementById('particleVal').innerText = particleCount.toLocaleString();
+                    init2DParticles();
+                    init3DParticles();
+                });
+            }
+
+            // Reset Sand Button
+            const resetSandBtn = document.getElementById('resetSandBtn');
+            if (resetSandBtn) resetSandBtn.addEventListener('click', () => {
+                init2DParticles();
+                init3DParticles();
+            });
+
+            // Shake Sand Button
+            const disturbSandBtn = document.getElementById('disturbSandBtn');
+            if (disturbSandBtn) {
+                disturbSandBtn.addEventListener('click', () => {
+                    for (let p of particles2D) {
+                        p.vx += (Math.random() - 0.5) * 0.08;
+                        p.vy += (Math.random() - 0.5) * 0.08;
+                    }
+                    for (let p of particles3DData) {
+                        p.vx += (Math.random() - 0.5) * 0.08;
+                        p.vz += (Math.random() - 0.5) * 0.08;
+                        p.vy += 0.04;
+                    }
+                });
+            }
+
+            // Toggle Nodal Line Overlay
+            const toggleOverlayBtn = document.getElementById('toggleNodalOverlay');
+            if (toggleOverlayBtn) {
+                toggleOverlayBtn.addEventListener('click', (e) => {
+                    showNodalOverlay = !showNodalOverlay;
+                    e.currentTarget.classList.toggle('bg-cyan-900/40');
+                    e.currentTarget.classList.toggle('border-cyan-500/40');
+                });
+            }
+
+            // Auto Sweep Button
+            const sweepBtn = document.getElementById('sweepToggleBtn');
+            if (sweepBtn) {
+                sweepBtn.addEventListener('click', () => {
+                    isSweeping = !isSweeping;
+                    const icon = document.getElementById('sweepIcon');
+                    const text = document.getElementById('sweepText');
+                    if (isSweeping) {
+                        if (icon) icon.className = 'fa-solid fa-pause text-amber-400';
+                        if (text) text.innerText = 'Pause Sweep';
+                    } else {
+                        if (icon) icon.className = 'fa-solid fa-play text-cyan-400';
+                        if (text) text.innerText = 'Auto Sweep';
+                    }
+                });
+            }
+
+            // Flower Preset Buttons
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    shape = btn.dataset.shape;
+                    modeN = parseInt(btn.dataset.n);
+                    modeM = parseInt(btn.dataset.m);
+                    baseFrequency = parseFloat(btn.dataset.freq);
+                    alpha = parseFloat(btn.dataset.alpha || 1.0);
+
+                    const mantraContainer = document.getElementById('displayMantraContainer');
+                    if (mantraContainer) mantraContainer.classList.add('hidden');
+
+                    if (shapeSelect) shapeSelect.value = shape;
+                    if (nSlider) nSlider.value = modeN;
+                    if (mSlider) mSlider.value = modeM;
+                    document.getElementById('nValue').innerText = modeN;
+                    document.getElementById('mValue').innerText = modeM;
+                    document.getElementById('displayMode').innerText = `(${modeN}, ${modeM})`;
+                    document.getElementById('displayShape').innerText = shape === 'circle' ? 'Circular' : (shape === 'ellipse' ? 'Elliptical (CymaScope)' : 'Square');
+
+                    updateFrequencyDisplay();
+
+                    if (isAudioPlaying && oscillator) {
+                        oscillator.frequency.setTargetAtTime(baseFrequency, audioCtx.currentTime, 0.05);
+                    }
+
+                    init2DParticles();
+                    build3DPlateMesh();
+                    init3DParticles();
+                });
+            });
+
+            // Color Selector Buttons
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    particleColorTheme = btn.dataset.color;
+                    if (particleSystem3D) {
+                        particleSystem3D.material.color.setHex(getParticleHexColor());
+                    }
+                });
+            });
+
+            // Modal Controls
+            const modal = document.getElementById('infoModal');
+            const infoToggle = document.getElementById('infoModalToggle');
+            const closeInfo = document.getElementById('closeInfoModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            if (infoToggle && modal) infoToggle.addEventListener('click', () => modal.classList.remove('hidden'));
+            if (closeInfo && modal) closeInfo.addEventListener('click', () => modal.classList.add('hidden'));
+            if (closeModalBtn && modal) closeModalBtn.addEventListener('click', () => modal.classList.add('hidden'));
+        }
+
+        // Render KaTeX Math Notation
+        function renderMathNotation() {
+            if (typeof renderMathInElement === 'function') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        // Window Init Event
+        window.onload = function() {
+            init3DScene();
+            resizeCanvas();
+            setupEventListeners();
+            updateFrequencyDisplay();
+            window.addEventListener('resize', resizeCanvas);
+            renderMathNotation();
+            render();
+        };
+    </script>
+</body>
+</html>
