@@ -6,7 +6,13 @@ set(CMAKE_CXX_STANDARD 17)
 
 
 add_executable(Neural_Network_Design_2e
-    main.cpp menu.h single_input_neuron.h
+    main.cpp 
+    matrix.h
+    menu.h 
+    single_input_neuron.h
+    multiple_input_neuron.h 
+    transfer_function.h
+    layer.h
 )
 
 set(OUTPUT_DIR "${CMAKE_SOURCE_DIR}/output")

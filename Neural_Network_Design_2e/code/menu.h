@@ -6,11 +6,11 @@
 #include <limits>
 #include <functional>
 #include "single_input_neuron.h"
-
+#include "transfer_function.h"
+#include "multiple_input_neuron.h"
+#include "layer.h"
 
 using namespace std;
-
-
 
 // ============================================================
 //                     MENU NODE
@@ -34,12 +34,11 @@ struct MenuNode
     function<void()> action;
 };
 
-
 // ============================================================
 //                 HELPER: LEAF NODE
 // ============================================================
 
-MenuNode item(const string& title)
+MenuNode item(const string &title)
 {
     MenuNode node;
 
@@ -48,15 +47,13 @@ MenuNode item(const string& title)
     return node;
 }
 
-
 // ============================================================
 //              HELPER: ACTION MENU NODE
 // ============================================================
 
 MenuNode actionItem(
-    const string& title,
-    function<void()> action
-)
+    const string &title,
+    function<void()> action)
 {
     MenuNode node;
 
@@ -65,7 +62,6 @@ MenuNode actionItem(
 
     return node;
 }
-
 
 // ============================================================
 //                     CHAPTER 1
@@ -86,7 +82,6 @@ MenuNode createChapter1()
     return chapter;
 }
 
-
 // ============================================================
 //                     CHAPTER 2
 // ============================================================
@@ -99,7 +94,6 @@ MenuNode createChapter2()
 
     chapter.children[1] = item("Objectives");
 
-
     // --------------------------------------------------------
     // Theory and Examples
     // --------------------------------------------------------
@@ -108,10 +102,8 @@ MenuNode createChapter2()
 
     theory.title = "Theory and Examples";
 
-
     theory.children[1] =
         item("Notation");
-
 
     // --------------------------------------------------------
     // Neuron Model
@@ -121,7 +113,6 @@ MenuNode createChapter2()
 
     neuronModel.title = "Neuron Model";
 
-
     neuronModel.children[1] =
         actionItem(
             "Single-Input Neuron",
@@ -129,20 +120,98 @@ MenuNode createChapter2()
             {
                 SingleInputNeuron neuron;
                 neuron.process();
-            }
-        );
+                neuron.menu_function();
+            });
 
+    MenuNode transfer_function;
 
-    neuronModel.children[2] =
-        item("Transfer Functions");
+    transfer_function.title = "Transfer Function";
 
+    transfer_function.children[1] = actionItem("hardlim", []()
+                                               {
+                                                   SingleInputNeuron neuron;
+                                                   neuron.process();
+                                                   TransferFunction activation;
+                                                   activation.setNetOutput(neuron.getNetInput());
+                                                   cout << "Output (a)= " << activation.hardlim() << endl;
+                                                   neuron.menu_function(); });
+    transfer_function.children[2] = actionItem("hardlims", []()
+                                               {
+                                                   SingleInputNeuron neuron;
+                                                   neuron.process();
+                                                   TransferFunction activation;
+                                                   activation.setNetOutput(neuron.getNetInput());
+                                                   cout << "Output (a)= " << activation.hardlims() << endl;
+                                                   neuron.menu_function(); });
+    transfer_function.children[3] = actionItem("purelin", []()
+                                               {
+                SingleInputNeuron neuron;
+                neuron.process();
+                TransferFunction activation;
+                activation.setNetOutput(neuron.getNetInput());
+                cout << "Output (a)= " << activation.purelin() << endl;     
+                neuron.menu_function(); });
+    transfer_function.children[4] = actionItem("satlin", []()
+                                               {
+                SingleInputNeuron neuron;
+                neuron.process();
+                TransferFunction activation;
+                activation.setNetOutput(neuron.getNetInput());
+                cout << "Output (a)= " << activation.satlin() << endl;     
+                neuron.menu_function(); });
+    transfer_function.children[5] = actionItem("satlins", []()
+                                               {
+        SingleInputNeuron neuron;
+                neuron.process();
+                TransferFunction activation;
+                activation.setNetOutput(neuron.getNetInput());
+                cout << "Output (a)= " << activation.satlins() << endl;     
+                neuron.menu_function(); });
+    transfer_function.children[6] = actionItem("logsig", []()
+                                               {
+        SingleInputNeuron neuron;
+                neuron.process();
+                TransferFunction activation;
+                activation.setNetOutput(neuron.getNetInput());
+                cout << "Output (a)= " << activation.logsig() << endl;     
+                neuron.menu_function(); });
+    transfer_function.children[7] = actionItem("tansig", []()
+                                               {
+                                                   SingleInputNeuron neuron;
+                                                   neuron.process();
+                                                   TransferFunction activation;
+                                                   activation.setNetOutput(neuron.getNetInput());
+                                                   cout << "Output (a)= " << activation.tansig() << endl;
+                                                   neuron.menu_function(); });
+    transfer_function.children[8] = actionItem("poslin", []()
+                                               {
+        SingleInputNeuron neuron;
+                neuron.process();
+                TransferFunction activation;
+                activation.setNetOutput(neuron.getNetInput());
+                cout << "Output (a)= " << activation.poslin() << endl;     
+                neuron.menu_function(); });
+    transfer_function.children[9] = actionItem("compet", []()
+                                               {
+        SingleInputNeuron neuron;
+                neuron.process();
+                TransferFunction activation;
+                activation.setNetOutput(neuron.getNetInput());
+                cout << "Output (a)= " << activation.compet() << endl;     
+                neuron.menu_function(); });
+
+    neuronModel.children[2] = transfer_function;
 
     neuronModel.children[3] =
-        item("Multiple-Input Neuron");
+        actionItem("Multiple-Input Neuron",[](){
 
+             MultipleInputNeuron multiple_input_neuron;
+             multiple_input_neuron.process();
+             multiple_input_neuron.menu_function();
+        });
 
+       
     theory.children[2] = neuronModel;
-
 
     // --------------------------------------------------------
     // Network Architectures
@@ -153,7 +222,11 @@ MenuNode createChapter2()
     architecture.title = "Network Architectures";
 
     architecture.children[1] =
-        item("A Layer of Neurons");
+        actionItem("A Layer of Neurons",[](){
+            //  Layer layer;
+            //  layer.process();
+            //  layer.menu_function();
+        });
 
     architecture.children[2] =
         item("Multiple Layers of Neurons");
@@ -161,12 +234,9 @@ MenuNode createChapter2()
     architecture.children[3] =
         item("Recurrent Networks");
 
-
     theory.children[3] = architecture;
 
-
     chapter.children[2] = theory;
-
 
     chapter.children[3] =
         item("Summary of Results");
@@ -180,10 +250,8 @@ MenuNode createChapter2()
     chapter.children[6] =
         item("Exercises");
 
-
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 3
@@ -197,13 +265,11 @@ MenuNode createChapter3()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
 
     theory.children[1] =
         item("Problem Statement");
-
 
     MenuNode perceptron;
     perceptron.title = "Perceptron";
@@ -216,7 +282,6 @@ MenuNode createChapter3()
 
     theory.children[2] = perceptron;
 
-
     MenuNode hamming;
     hamming.title = "Hamming Network";
 
@@ -228,10 +293,8 @@ MenuNode createChapter3()
 
     theory.children[3] = hamming;
 
-
     theory.children[4] =
         item("Hopfield Network");
-
 
     chapter.children[2] = theory;
 
@@ -240,7 +303,6 @@ MenuNode createChapter3()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 4
@@ -254,14 +316,11 @@ MenuNode createChapter4()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
 
-
     theory.children[1] =
         item("Learning Rules");
-
 
     MenuNode architecture;
     architecture.title = "Perceptron Architecture";
@@ -273,7 +332,6 @@ MenuNode createChapter4()
         item("Multiple-Neuron Perceptron");
 
     theory.children[2] = architecture;
-
 
     MenuNode learning;
     learning.title = "Perceptron Learning Rule";
@@ -292,7 +350,6 @@ MenuNode createChapter4()
 
     theory.children[3] = learning;
 
-
     MenuNode convergence;
     convergence.title = "Proof of Convergence";
 
@@ -301,7 +358,6 @@ MenuNode createChapter4()
     convergence.children[3] = item("Limitations");
 
     theory.children[4] = convergence;
-
 
     chapter.children[2] = theory;
 
@@ -314,7 +370,6 @@ MenuNode createChapter4()
     return chapter;
 }
 
-
 // ============================================================
 //                     CHAPTER 5
 // ============================================================
@@ -326,7 +381,6 @@ MenuNode createChapter5()
     chapter.title = "Chapter 5";
 
     chapter.children[1] = item("Objectives");
-
 
     MenuNode theory;
     theory.title = "Theory and Examples";
@@ -346,7 +400,6 @@ MenuNode createChapter5()
     theory.children[5] =
         item("Norm");
 
-
     MenuNode orthogonality;
     orthogonality.title = "Orthogonality";
 
@@ -355,7 +408,6 @@ MenuNode createChapter5()
 
     theory.children[6] = orthogonality;
 
-
     MenuNode expansions;
     expansions.title = "Vector Expansions";
 
@@ -363,7 +415,6 @@ MenuNode createChapter5()
         item("Reciprocal Basis Vector");
 
     theory.children[7] = expansions;
-
 
     chapter.children[2] = theory;
 
@@ -374,7 +425,6 @@ MenuNode createChapter5()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 6
@@ -388,7 +438,6 @@ MenuNode createChapter6()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
 
@@ -401,7 +450,6 @@ MenuNode createChapter6()
     theory.children[3] =
         item("Change of Basis");
 
-
     MenuNode eigen;
     eigen.title = "Eigenvalues and Eigenvectors";
 
@@ -409,7 +457,6 @@ MenuNode createChapter6()
         item("Diagonalization");
 
     theory.children[4] = eigen;
-
 
     chapter.children[2] = theory;
 
@@ -420,7 +467,6 @@ MenuNode createChapter6()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 7
@@ -434,13 +480,11 @@ MenuNode createChapter7()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
 
     theory.children[1] =
         item("Linear Associator");
-
 
     MenuNode hebb;
     hebb.title = "The Hebb Rule";
@@ -450,7 +494,6 @@ MenuNode createChapter7()
 
     theory.children[2] = hebb;
 
-
     theory.children[3] =
         item("Pseudoinverse Rule");
 
@@ -459,7 +502,6 @@ MenuNode createChapter7()
 
     theory.children[5] =
         item("Variations of Hebbian Learning");
-
 
     chapter.children[2] = theory;
 
@@ -471,7 +513,6 @@ MenuNode createChapter7()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 8
@@ -485,10 +526,8 @@ MenuNode createChapter8()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
-
 
     MenuNode taylor;
     taylor.title = "Taylor Series";
@@ -498,13 +537,11 @@ MenuNode createChapter8()
 
     theory.children[1] = taylor;
 
-
     theory.children[2] =
         item("Directional Derivatives");
 
     theory.children[3] =
         item("Minima");
-
 
     MenuNode optimality;
     optimality.title =
@@ -518,7 +555,6 @@ MenuNode createChapter8()
 
     theory.children[4] = optimality;
 
-
     MenuNode quadratic;
     quadratic.title = "Quadratic Functions";
 
@@ -526,7 +562,6 @@ MenuNode createChapter8()
         item("Eigensystem of the Hessian");
 
     theory.children[5] = quadratic;
-
 
     chapter.children[2] = theory;
 
@@ -537,7 +572,6 @@ MenuNode createChapter8()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 9
@@ -551,10 +585,8 @@ MenuNode createChapter9()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
-
 
     MenuNode steepest;
     steepest.title = "Steepest Descent";
@@ -567,13 +599,11 @@ MenuNode createChapter9()
 
     theory.children[1] = steepest;
 
-
     theory.children[2] =
         item("Newton's Method");
 
     theory.children[3] =
         item("Conjugate Gradient");
-
 
     chapter.children[2] = theory;
 
@@ -584,7 +614,6 @@ MenuNode createChapter9()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 10
@@ -598,10 +627,8 @@ MenuNode createChapter10()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
-
 
     MenuNode adaline;
     adaline.title = "ADALINE Network";
@@ -611,7 +638,6 @@ MenuNode createChapter10()
 
     theory.children[1] = adaline;
 
-
     theory.children[2] =
         item("Mean Square Error");
 
@@ -620,7 +646,6 @@ MenuNode createChapter10()
 
     theory.children[4] =
         item("Analysis of Convergence");
-
 
     MenuNode filtering;
     filtering.title = "Adaptive Filtering";
@@ -633,7 +658,6 @@ MenuNode createChapter10()
 
     theory.children[5] = filtering;
 
-
     chapter.children[2] = theory;
 
     chapter.children[3] = item("Summary of Results");
@@ -643,7 +667,6 @@ MenuNode createChapter10()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 11
@@ -657,10 +680,8 @@ MenuNode createChapter11()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
-
 
     MenuNode mlp;
     mlp.title = "Multilayer Perceptrons";
@@ -672,7 +693,6 @@ MenuNode createChapter11()
         item("Function Approximation");
 
     theory.children[1] = mlp;
-
 
     MenuNode backprop;
     backprop.title =
@@ -692,13 +712,11 @@ MenuNode createChapter11()
 
     theory.children[2] = backprop;
 
-
     theory.children[3] =
         item("Example");
 
     theory.children[4] =
         item("Batch vs. Incremental Training");
-
 
     MenuNode usingBackprop;
     usingBackprop.title =
@@ -715,7 +733,6 @@ MenuNode createChapter11()
 
     theory.children[5] = usingBackprop;
 
-
     chapter.children[2] = theory;
 
     chapter.children[3] = item("Summary of Results");
@@ -726,7 +743,6 @@ MenuNode createChapter11()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 12
@@ -740,10 +756,8 @@ MenuNode createChapter12()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
-
 
     MenuNode drawbacks;
     drawbacks.title =
@@ -757,7 +771,6 @@ MenuNode createChapter12()
 
     theory.children[1] = drawbacks;
 
-
     MenuNode modifications;
     modifications.title =
         "Heuristic Modifications of Backpropagation";
@@ -769,7 +782,6 @@ MenuNode createChapter12()
         item("Variable Learning Rule");
 
     theory.children[2] = modifications;
-
 
     MenuNode numerical;
     numerical.title =
@@ -783,7 +795,6 @@ MenuNode createChapter12()
 
     theory.children[3] = numerical;
 
-
     chapter.children[2] = theory;
 
     chapter.children[3] = item("Summary of Results");
@@ -794,7 +805,6 @@ MenuNode createChapter12()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 13
@@ -808,13 +818,11 @@ MenuNode createChapter13()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
 
     theory.children[1] =
         item("Problem Statement");
-
 
     MenuNode generalization;
     generalization.title =
@@ -840,7 +848,6 @@ MenuNode createChapter13()
 
     theory.children[2] = generalization;
 
-
     chapter.children[2] = theory;
 
     chapter.children[3] = item("Summary of Results");
@@ -850,7 +857,6 @@ MenuNode createChapter13()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 14
@@ -864,10 +870,8 @@ MenuNode createChapter14()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
-
 
     MenuNode dynamicNetworks;
     dynamicNetworks.title =
@@ -878,10 +882,8 @@ MenuNode createChapter14()
 
     theory.children[1] = dynamicNetworks;
 
-
     theory.children[2] =
         item("Principles of Dynamic Learning");
-
 
     MenuNode dynamicBackprop;
     dynamicBackprop.title =
@@ -901,7 +903,6 @@ MenuNode createChapter14()
 
     theory.children[3] = dynamicBackprop;
 
-
     chapter.children[2] = theory;
 
     chapter.children[3] = item("Summary of Results");
@@ -911,7 +912,6 @@ MenuNode createChapter14()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 15
@@ -925,14 +925,11 @@ MenuNode createChapter15()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
 
-
     theory.children[1] =
         item("Simple Associative Network");
-
 
     MenuNode hebb;
     hebb.title = "Unsupervised Hebb Rule";
@@ -942,10 +939,8 @@ MenuNode createChapter15()
 
     theory.children[2] = hebb;
 
-
     theory.children[3] =
         item("Simple Recognition Network");
-
 
     MenuNode instar;
     instar.title = "Instar Rule";
@@ -955,13 +950,11 @@ MenuNode createChapter15()
 
     theory.children[4] = instar;
 
-
     theory.children[5] =
         item("Simple Recall Network");
 
     theory.children[6] =
         item("Outstar Rule");
-
 
     chapter.children[2] = theory;
 
@@ -972,7 +965,6 @@ MenuNode createChapter15()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 16
@@ -986,10 +978,8 @@ MenuNode createChapter16()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
-
 
     MenuNode hamming;
     hamming.title = "Hamming Network";
@@ -1002,7 +992,6 @@ MenuNode createChapter16()
 
     theory.children[1] = hamming;
 
-
     MenuNode competitive;
     competitive.title = "Competitive Layer";
 
@@ -1014,10 +1003,8 @@ MenuNode createChapter16()
 
     theory.children[2] = competitive;
 
-
     theory.children[3] =
         item("Competitive Layers in Biology");
-
 
     MenuNode som;
     som.title =
@@ -1027,7 +1014,6 @@ MenuNode createChapter16()
         item("Improving Feature Maps");
 
     theory.children[4] = som;
-
 
     MenuNode lvq;
     lvq.title =
@@ -1041,7 +1027,6 @@ MenuNode createChapter16()
 
     theory.children[5] = lvq;
 
-
     chapter.children[2] = theory;
 
     chapter.children[3] = item("Summary of Results");
@@ -1052,7 +1037,6 @@ MenuNode createChapter16()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 17
@@ -1066,10 +1050,8 @@ MenuNode createChapter17()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
-
 
     MenuNode rbf;
     rbf.title = "Radial Basis Network";
@@ -1084,7 +1066,6 @@ MenuNode createChapter17()
         item("Global vs. Local");
 
     theory.children[1] = rbf;
-
 
     MenuNode training;
     training.title = "Training RBF Networks";
@@ -1106,7 +1087,6 @@ MenuNode createChapter17()
 
     theory.children[2] = training;
 
-
     chapter.children[2] = theory;
 
     chapter.children[3] = item("Summary of Results");
@@ -1117,7 +1097,6 @@ MenuNode createChapter17()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 18
@@ -1131,10 +1110,8 @@ MenuNode createChapter18()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
-
 
     MenuNode vision;
     vision.title =
@@ -1148,10 +1125,8 @@ MenuNode createChapter18()
 
     theory.children[1] = vision;
 
-
     theory.children[2] =
         item("Basic Nonlinear Model");
-
 
     MenuNode competitive;
     competitive.title =
@@ -1171,10 +1146,8 @@ MenuNode createChapter18()
 
     theory.children[3] = competitive;
 
-
     theory.children[4] =
         item("Relation to Kohonen Law");
-
 
     chapter.children[2] = theory;
 
@@ -1186,7 +1159,6 @@ MenuNode createChapter18()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 19
@@ -1200,14 +1172,11 @@ MenuNode createChapter19()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
 
-
     theory.children[1] =
         item("Overview of Adaptive Resonance");
-
 
     MenuNode layer1;
     layer1.title = "Layer 1";
@@ -1217,13 +1186,11 @@ MenuNode createChapter19()
 
     theory.children[2] = layer1;
 
-
     theory.children[3] =
         item("Layer 2");
 
     theory.children[4] =
         item("Orienting Subsystem");
-
 
     MenuNode l1l2;
     l1l2.title = "Learning Law: L1-L2";
@@ -1236,10 +1203,8 @@ MenuNode createChapter19()
 
     theory.children[5] = l1l2;
 
-
     theory.children[6] =
         item("Learning Law: L2-L1");
-
 
     MenuNode art;
     art.title = "ART1 Algorithm Summary";
@@ -1252,10 +1217,8 @@ MenuNode createChapter19()
 
     theory.children[7] = art;
 
-
     theory.children[8] =
         item("Other ART Architectures");
-
 
     chapter.children[2] = theory;
 
@@ -1267,7 +1230,6 @@ MenuNode createChapter19()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 20
@@ -1281,14 +1243,11 @@ MenuNode createChapter20()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
 
-
     theory.children[1] =
         item("Recurrent Networks");
-
 
     MenuNode stability;
     stability.title = "Stability Concepts";
@@ -1298,13 +1257,11 @@ MenuNode createChapter20()
 
     theory.children[2] = stability;
 
-
     theory.children[3] =
         item("Lyapunov Stability Theorem");
 
     theory.children[4] =
         item("Pendulum Example");
-
 
     MenuNode lasalle;
     lasalle.title =
@@ -1324,7 +1281,6 @@ MenuNode createChapter20()
 
     theory.children[5] = lasalle;
 
-
     chapter.children[2] = theory;
 
     chapter.children[3] = item("Summary of Results");
@@ -1335,7 +1291,6 @@ MenuNode createChapter20()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 21
@@ -1349,14 +1304,11 @@ MenuNode createChapter21()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
 
-
     theory.children[1] =
         item("Hopfield Model");
-
 
     MenuNode lyapunov;
     lyapunov.title = "Lyapunov Function";
@@ -1372,10 +1324,8 @@ MenuNode createChapter21()
 
     theory.children[2] = lyapunov;
 
-
     theory.children[3] =
         item("Effect of Gain");
-
 
     MenuNode design;
     design.title = "Hopfield Design";
@@ -1391,7 +1341,6 @@ MenuNode createChapter21()
 
     theory.children[4] = design;
 
-
     chapter.children[2] = theory;
 
     chapter.children[3] = item("Summary of Results");
@@ -1402,7 +1351,6 @@ MenuNode createChapter21()
 
     return chapter;
 }
-
 
 // ============================================================
 //                     CHAPTER 22
@@ -1416,10 +1364,8 @@ MenuNode createChapter22()
 
     chapter.children[1] = item("Objectives");
 
-
     MenuNode theory;
     theory.title = "Theory and Examples";
-
 
     MenuNode pretraining;
     pretraining.title = "Pre-Training Steps";
@@ -1434,7 +1380,6 @@ MenuNode createChapter22()
         item("Choice of Network Architecture");
 
     theory.children[1] = pretraining;
-
 
     MenuNode training;
     training.title = "Training the Network";
@@ -1455,7 +1400,6 @@ MenuNode createChapter22()
         item("Committees of Networks");
 
     theory.children[2] = training;
-
 
     MenuNode post;
     post.title = "Post-Training Analysis";
@@ -1480,7 +1424,6 @@ MenuNode createChapter22()
 
     theory.children[3] = post;
 
-
     chapter.children[2] = theory;
 
     chapter.children[3] = item("Epilogue");
@@ -1488,7 +1431,6 @@ MenuNode createChapter22()
 
     return chapter;
 }
-
 
 // ============================================================
 //        CHAPTERS 23 - 27 : MAGNETIC LEVITATION SYSTEM
@@ -1501,15 +1443,12 @@ MenuNode createMagneticLevitationChapter(int number)
     chapter.title =
         "Chapter " + to_string(number);
 
-
     chapter.children[1] =
         item("Objectives");
-
 
     MenuNode theory;
     theory.title =
         "Theory and Examples";
-
 
     theory.children[1] =
         item("Description of the Magnetic Levitation System");
@@ -1529,7 +1468,6 @@ MenuNode createMagneticLevitationChapter(int number)
     theory.children[6] =
         item("Data Sets");
 
-
     chapter.children[2] = theory;
 
     chapter.children[3] =
@@ -1538,10 +1476,8 @@ MenuNode createMagneticLevitationChapter(int number)
     chapter.children[4] =
         item("Further Reading");
 
-
     return chapter;
 }
-
 
 // ============================================================
 //                    CREATE MAIN MENU
@@ -1552,7 +1488,6 @@ MenuNode createMainMenu()
     MenuNode main;
 
     main.title = "Neural Network Design";
-
 
     main.children[1] =
         createChapter1();
@@ -1620,7 +1555,6 @@ MenuNode createMainMenu()
     main.children[22] =
         createChapter22();
 
-
     // Chapters 23 - 27
 
     main.children[23] =
@@ -1638,24 +1572,21 @@ MenuNode createMainMenu()
     main.children[27] =
         createMagneticLevitationChapter(27);
 
-
     return main;
 }
-
 
 // ============================================================
 //                     DISPLAY MENU
 // ============================================================
 
-void displayMenu(const MenuNode& node)
+void displayMenu(const MenuNode &node)
 {
     cout << "\n";
     cout << "============================================================\n";
     cout << "  " << node.title << "\n";
     cout << "============================================================\n";
 
-
-    for (const auto& [number, child] : node.children)
+    for (const auto &[number, child] : node.children)
     {
         cout << "  "
              << number
@@ -1664,29 +1595,25 @@ void displayMenu(const MenuNode& node)
              << endl;
     }
 
-
     cout << "  0. Back\n";
 
     cout << "============================================================\n";
 }
 
-
 // ============================================================
 //                  RECURSIVE MENU FUNCTION
 // ============================================================
 
-void runMenu(const MenuNode& node)
+void runMenu(const MenuNode &node)
 {
     while (true)
     {
         displayMenu(node);
 
-
         int choice;
 
         cout << "Enter your choice: ";
         cin >> choice;
-
 
         // ----------------------------------------------------
         // Invalid input
@@ -1698,14 +1625,12 @@ void runMenu(const MenuNode& node)
 
             cin.ignore(
                 numeric_limits<streamsize>::max(),
-                '\n'
-            );
+                '\n');
 
             cout << "\nInvalid input. Please enter a number.\n";
 
             continue;
         }
-
 
         // ----------------------------------------------------
         // Back
@@ -1716,13 +1641,11 @@ void runMenu(const MenuNode& node)
             return;
         }
 
-
         // ----------------------------------------------------
         // Find menu item in map
         // ----------------------------------------------------
 
         auto found = node.children.find(choice);
-
 
         if (found == node.children.end())
         {
@@ -1731,10 +1654,8 @@ void runMenu(const MenuNode& node)
             continue;
         }
 
-
-        const MenuNode& selected =
+        const MenuNode &selected =
             found->second;
-
 
         // ----------------------------------------------------
         // If action exists, execute it
@@ -1745,7 +1666,6 @@ void runMenu(const MenuNode& node)
             selected.action();
         }
 
-
         // ----------------------------------------------------
         // Otherwise recursively open submenu
         // ----------------------------------------------------
@@ -1754,7 +1674,6 @@ void runMenu(const MenuNode& node)
         {
             runMenu(selected);
         }
-
 
         // ----------------------------------------------------
         // Leaf node without action
@@ -1769,19 +1688,13 @@ void runMenu(const MenuNode& node)
 
             cout << "This topic has not been implemented yet.\n";
 
-
             cout << "\nPress ENTER to continue...";
 
             cin.ignore(
                 numeric_limits<streamsize>::max(),
-                '\n'
-            );
+                '\n');
 
             cin.get();
         }
     }
 }
-
-
-
-

@@ -144,6 +144,11 @@ public:
         cout << "------------------------------------------------------------\n";
 
 
+        
+    }
+
+
+    void menu_function(){
         cout << "\nPress ENTER to continue...";
 
         cin.ignore(numeric_limits<streamsize>::max(), '\n');

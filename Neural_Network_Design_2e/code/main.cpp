@@ -1,28 +1,15 @@
 #include <iostream>
-#include  "menu.h"
-using namespace std;
+#include "menu.h"
+#include "matrix.h"
 
+int main() {
+   
+    //MenuNode menuNode = createMainMenu();
+    //runMenu(menuNode);
 
-// ============================================================
-//                         MAIN
-// ============================================================
-
-int main()
-{
-    MenuNode mainMenu = createMainMenu();
-
-
-    runMenu(mainMenu);
-
-
-    cout << "\n";
-    cout << "============================================================\n";
-    cout << "  Neural Network Design - Program Finished\n";
-    cout << "============================================================\n";
+    Matrix mt(2,2);
+    //mt.print();
 
 
     return 0;
 }
-
-
-
