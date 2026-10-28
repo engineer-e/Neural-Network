@@ -22,9 +22,7 @@ I am building this **one chapter at a time, one concept at a time, completely on
 2. [Neuron Model and Network Architectures](code/js/nn/02.ipynb)
 
    
-3. An Illustrative Example
-    
-
+3. [An Illustrative Example](code/js/nn/03.ipynb)
     
 
     
